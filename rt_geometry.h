@@ -1,8 +1,7 @@
 #ifndef RT_GEOMETRY_H
 #define RT_GEOMETRY_H
 
-#include <math.h>
-#include <stdint.h>
+#include "rt_maths.h"
 
 // represents a 3 dimensional vector, with associated operations
 struct rt_vector3
@@ -46,9 +45,6 @@ rt_vector3 norm_copy(rt_vector3& v) { return v / mag(v); }
 
 // a colour is an equivalent type
 typedef rt_vector3 rt_colour;
-
-// clamp a floating point value to be greater than or equal to 0
-inline float clamp0(float f) { return f < 0 ? 0 : f; }
 
 // perform gamma correction on a colour, for view transform, and place the output
 // in a block of chars

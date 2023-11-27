@@ -1,3 +1,6 @@
+#ifndef RT_RAYCAST_H
+#define RT_RAYCAST_H
+
 #include "rt_geometry.h"
 #include "rt_buffer.h"
 
@@ -37,3 +40,5 @@ public:
     // test for intersection with a specific triangle
     uint8_t check_triangle(rt_tri*, rt_ray&, rt_raycast_result&);
 };
+
+#endif
