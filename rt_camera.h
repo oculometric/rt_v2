@@ -25,10 +25,7 @@ struct rt_camera
     // from here on these values should not be set directly
     rt_vector3 view_horizontal_vector;
     rt_vector3 view_vertical_vector;
-
-    rt_vector2 view_size_inverse;
-    float aspect_ratio;
-    float horizontal_view_size_half;
+    rt_vector3 view_topleft_vector;
 };
 
 void compute_vectors(rt_camera &);

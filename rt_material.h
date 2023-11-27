@@ -16,14 +16,17 @@ struct rt_simplesky
     rt_colour upper;
     rt_colour horizon;
     rt_colour lower;
-
-    void sample(rt_vector3 &, rt_colour &);
 };
+
+void sample_sky(rt_simplesky &, rt_vector3 &, rt_colour &);
 
 struct rt_sun
 {
     rt_colour colour;
     rt_vector3 direction;
+    float angle;
 };
+
+void sample_sun(rt_sun &, rt_vector3 &, rt_colour &);
 
 #endif

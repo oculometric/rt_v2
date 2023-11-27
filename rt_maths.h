@@ -2,6 +2,7 @@
 #define RT_MATHS_H
 
 // TODO: replace these includes with own implementations
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdint.h>
 
