@@ -1,2 +1,2 @@
 all:
-	g++ *.cpp -o main
+	g++ -O0 *.cpp -o main
