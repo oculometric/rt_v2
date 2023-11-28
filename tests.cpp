@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <math.h>
+#include <climits>
 #include "rt_vector.h"
 
 using namespace std;
@@ -59,7 +60,7 @@ void randomise_vector(rt_vector3& v)
 #define R_56 rt_vector3{ -1,-1,-1 };
 #define R_41 rt_vector3{ -48,8,-49 };
 
-#define OPERATIONS_TEST 1000000
+#define OPERATIONS_TEST 100000000
 
 void output_result(bool b)
 {
@@ -67,7 +68,12 @@ void output_result(bool b)
     else cout << "Fail" << endl;
 }
 
-void main()
+void describe(rt_vector3 v)
+{
+    cout << "(" << v.x << "," << v.y << "," << v.z << ")" << endl;
+}
+
+int main()
 {
     // Test dot product
     cout << "Testing dot products" << endl;
@@ -103,91 +109,101 @@ void main()
     output_result((a % b) == c);
     a = V_3;
     b = V_2;
-    rt_vector3 c = C_32;
+    c = C_32;
     output_result((a % b) == c);
     a = V_2;
     b = V_3;
-    rt_vector3 c = C_23;
+    c = C_23;
     output_result((a % b) == c);
     a = V_5;
     b = V_4;
-    rt_vector3 c = C_54;
+    c = C_54;
     output_result((a % b) == c);
     a = V_3;
     b = V_5;
-    rt_vector3 c = C_35;
+    c = C_35;
     output_result((a % b) == c);
     a = V_4;
     b = V_5;
-    rt_vector3 c = C_45;
+    c = C_45;
     output_result((a % b) == c);
     a = V_4;
     b = V_2;
-    rt_vector3 c = C_42;
+    c = C_42;
     output_result((a % b) == c);
     a = V_2;
     b = V_1;
-    rt_vector3 c = C_21;
+    c = C_21;
     output_result((a % b) == c);
 
     cout << "Testing magnitude and normalisation" << endl;
     a = V_1;
     b = N_1;
     output_result(mag(a) - M_1 < 0.01);
-    output_result(mag(norm_copy(a) - b) < 0.01);
+    c = norm_copy(a)-b;
+    output_result(mag(c) < 0.01);
     a = V_2;
     b = N_2;
     output_result(mag(a) - M_2 < 0.01);
-    output_result(mag(norm_copy(a) - b) < 0.01);
+    c = norm_copy(a)-b;
+    output_result(mag(c) < 0.01);
     a = V_3;
     b = N_3;
     output_result(mag(a) - M_3 < 0.01);
-    output_result(mag(norm_copy(a) - b) < 0.01);
+    c = norm_copy(a)-b;
+    output_result(mag(c) < 0.01);
     a = V_4;
     b = N_4;
     output_result(mag(a) - M_4 < 0.01);
-    output_result(mag(norm_copy(a) - b) < 0.01);
+    c = norm_copy(a)-b;
+    output_result(mag(c) < 0.01);
     a = V_5;
     b = N_5;
     output_result(mag(a) - M_5 < 0.01);
-    output_result(mag(norm_copy(a) - b) < 0.01);
+    c = norm_copy(a)-b;
+    output_result(mag(c) < 0.01);
     a = V_6;
     b = N_6;
     output_result(mag(a) - M_6 < 0.01);
-    output_result(mag(norm_copy(a) - b) < 0.01);
+    c = norm_copy(a)-b;
+    output_result(mag(c) < 0.01);
 
     cout << "Testing reflection" << endl;
     a = V_1;
-    b = V_2;
+    b = N_2;
     c = R_12;
+    describe(a);
+    describe(b);
+    describe(reflect(a,b));
+    describe(c);
     output_result(reflect(a,b) == c);
     a = V_1;
-    b = V_5;
+    b = N_5;
     c = R_15;
     output_result(reflect(a,b) == c);
     a = V_5;
-    b = V_4;
+    b = N_4;
     c = R_54;
     output_result(reflect(a,b) == c);
     a = V_3;
-    b = V_4;
+    b = N_4;
     c = R_34;
     output_result(reflect(a,b) == c);
     a = V_4;
-    b = V_3;
+    b = N_3;
     c = R_43;
     output_result(reflect(a,b) == c);
     a = V_5;
-    b = V_6;
+    b = N_6;
     c = R_56;
     output_result(reflect(a,b) == c);
     a = V_4;
-    b = V_1;
+    b = N_1;
     c = R_41;
     output_result(reflect(a,b) == c);
 
     cout << "Timing addition..." << endl;
-    chrono::steady_clock::duration total;
+    chrono::steady_clock::duration total = chrono::nanoseconds(0);
     chrono::steady_clock::duration start;
     chrono::steady_clock::duration end;
     rt_vector3 x;
@@ -202,9 +218,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing multiplication..." << endl;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -214,9 +231,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing subtraction..." << endl;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -226,9 +244,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing division..." << endl;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -238,10 +257,11 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing dot product..." << endl;
     float resf = 0;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -251,9 +271,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing cross product..." << endl;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -263,9 +284,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing lerp..." << endl;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -276,9 +298,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing reflect..." << endl;
+    total = chrono::nanoseconds(0);
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
         randomise_vector(x);
@@ -288,9 +311,10 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "Timing perturb..." << endl;
+    total = chrono::nanoseconds(0);
     rt_vector2 p;
     for (int i = 0; i < OPERATIONS_TEST; i++)
     {
@@ -303,7 +327,7 @@ void main()
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
-    cout << "Time per operation (ns): " << total.count()/OPERATIONS_TEST << endl;
+    cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "All tests done." << endl;
 }

@@ -40,8 +40,8 @@ static inline float mag_sq(rt_vector3 & v) { return (v.x*v.x)+(v.y*v.y)+(v.z*v.z
 // magnitude of a vector
 static inline float mag(rt_vector3 & v) { return sqrt(mag_sq(v)); }
 // normalise a vector, i.e. divide by its magnitude to make its length equal to 1
-static inline void norm_self(rt_vector3 & v) { v /= mag(v); }
-rt_vector3 norm_copy(rt_vector3 & v) { return v / mag(v); }
+static inline void norm_self(rt_vector3 & v) { float m = mag(v); if (m > 0) v /= mag(v); }
+static inline rt_vector3 norm_copy(rt_vector3 & v) { float m = mag(v); if (m > 0) return v / mag(v); else return v; }
 
 // a colour is an equivalent type
 typedef rt_vector3 rt_colour;
@@ -83,7 +83,8 @@ static inline bool operator==(const rt_vector2 & a, const rt_vector2 & b) { retu
 // linear interpolate between two vectors
 static inline rt_vector3 lerp(const rt_vector3 & v, const rt_vector3 & w, const float f) { return rt_vector3{ v.x+((w.x-v.x)*f), v.y+((w.y-v.y)*f), v.z+((w.z-v.z)*f) }; }
 // reflect v in w, where w can be interpreted as a vector normal to a mirror in which v is reflected
-static inline rt_vector3 reflect(const rt_vector3 & v, const rt_vector3 & w) { rt_vector3 u = v-(w*((v.x*w.x)+(v.y*w.y)+(v.z*w.z))*2); return u/mag(u); }
+// w must be normalised
+static inline rt_vector3 reflect(const rt_vector3 & v, const rt_vector3 & w) { return v-(w*(v^w)*2); }
 // perturb v parallel to w by d.u, and perpendicular to w and v by d.v
 // v and w should be normalised if the scaling of the offset d is to be correct
 static inline rt_vector3 perturb(const rt_vector3 & v, const rt_vector3 & w, const rt_vector2 & d) { return v+(w*d.u)+((v%w)*d.v); }

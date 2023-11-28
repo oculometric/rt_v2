@@ -15,7 +15,7 @@ struct rt_bvh_node;
 struct rt_bvh_node
 {
     rt_bvh_node* last = NULL;
-    rt_bvh_node children[BVH_DIVISIONS_PER_LEVEL*BVH_DIVISIONS_PER_LEVEL*BVH_DIVISIONS_PER_LEVEL] = { NULL };
+    rt_bvh_node* children = NULL;
     rt_tri_node* tri_buffer = NULL;
     rt_bvh_node* next = NULL;
     rt_bounds bounds;
