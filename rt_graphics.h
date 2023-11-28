@@ -13,6 +13,7 @@ struct rt_options
     uint8_t samples_per_pixel;
     uint8_t dithering_mode;
     uint8_t view_transform;
+    uint8_t sample_depth;
 };
 
 class rt_vbuf
@@ -25,7 +26,7 @@ private:
 
     uint32_t buffer_length;
 
-    void render_pixel(rt_vector3 &);
+    void render_pixel(rt_vector2 &, uint32_t);
 
 public:
     rt_camera camera;
@@ -35,7 +36,7 @@ public:
     rt_gbuf graphics_buffer;
 
     void render();
-    void blit(uint8_t *);
+    void blit(uint8_t *, uint8_t, uint8_t);
 };
 
 #endif
