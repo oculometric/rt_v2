@@ -31,6 +31,7 @@ private:
 public:
     rt_camera camera;
     rt_simplesky sky;
+    rt_simplesky background_illumination;
     rt_sun sun;
     rt_options options;
     rt_gbuf graphics_buffer;
