@@ -28,7 +28,6 @@ void describe(rt_vector3 v)
 
 int main()
 {
-
     cout << "Timing addition..." << endl;
     chrono::steady_clock::duration total = chrono::nanoseconds(0);
     chrono::steady_clock::duration start;
@@ -41,7 +40,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = x + y;
+        add(x,y,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -54,7 +53,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = x * y;
+        mul(x,y,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -67,7 +66,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = x - y;
+        sub(x,y,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -80,7 +79,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = x / y;
+        div(x,y,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -94,7 +93,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        resf = x ^ y;
+        resf = dot(x,y);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -107,7 +106,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = x % y;
+        cross(x,y,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -121,7 +120,7 @@ int main()
         randomise_vector(y);
         resf = (float)rand()/(float)INT_MAX;
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = lerp(x,y,resf);
+        lerp(x,y,resf,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -134,7 +133,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = reflect(x,y);
+        reflect(x,y,res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -150,7 +149,7 @@ int main()
         p.u = (float)rand()/(float)INT_MAX;
         p.v = (float)rand()/(float)INT_MAX;
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        res = perturb(x, y, p);
+        perturb(x, y, p, res);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }

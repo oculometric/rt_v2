@@ -7,21 +7,25 @@ uint8_t rt_gbuf::raycast(rt_ray &, rt_raycast_result &)
 
 uint8_t rt_gbuf::check_triangle(rt_tri *tri, rt_ray &ray, rt_raycast_result &res)
 {
+    rt_vector3 tmp;
     // check for parallelness to the plane
-    float dot = tri->n ^ ray.direction;
-    if (dot == 0) return 0x00;
-    float backfacing = dot > 0 ? 1 : -1;
+    float dt = dot(tri->n, ray.direction);
+    if (dt == 0) return 0x00;
+    float backfacing = dt > 0 ? 1 : -1;
     if (backfacing > 0 && cull_backfaces) return 0x02;
 
     // check that the triangle is within clip ranges
-    float dist = ((tri->v1 - ray.origin) ^ tri->n) / dot;
+    sub(tri->v1, ray.origin, tmp);
+    float dist = dot(tmp, tri->n) / dt;
     if (dist < near_clip || dist > far_clip) return 0x06;
 
     // compute and check barycentric coordinates
-    rt_vector3 p = (ray.direction * dist) + ray.origin;
-    rt_vector3 v1p = p - tri->v1;
-    float d1 = v1p ^ tri->v1_2;
-    float d2 = v1p ^ tri->v1_3;
+    mul(ray.direction, dist, tmp);
+    add(tmp, ray.origin, tmp);
+    rt_vector3 tmp2;
+    sub(tmp, tri->v1, tmp2);
+    float d1 = dot(tmp2, tri->v1_2);
+    float d2 = dot(tmp2, tri->v1_3);
 
     float v = ((tri->d13_13 * d1) - (tri->d12_13 * d2)) * tri->inv_denom;
     if (v < 0 || v > 1) return 0x0E;
@@ -32,8 +36,8 @@ uint8_t rt_gbuf::check_triangle(rt_tri *tri, rt_ray &ray, rt_raycast_result &res
 
     res.distance = dist;
     res.hit_tri = tri;
-    res.r_dot_n = dot;
-    res.point = p;
+    res.r_dot_n = dt;
+    res.point = tmp;
 
     return 0x0F;
 }

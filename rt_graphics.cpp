@@ -14,8 +14,8 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
     if (rcr.hit_tri != NULL)
     {
         // if intersected, reflect and recast
-        colour *= rcr.hit_tri->material->diffuse_colour;
-        ray.direction = reflect(ray.direction, rcr.hit_tri->n);
+        colour = rcr.hit_tri->material->diffuse_colour;
+        reflect(ray.direction, rcr.hit_tri->n, ray.direction);
         ray.origin = rcr.point;
 
         depth_buffer[buffer_pos] = rcr.distance;
@@ -28,17 +28,18 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
         rt_colour backup_colour;
         if (rcr.hit_tri != NULL)
         {
-            colour *= rcr.hit_tri->material->diffuse_colour;
-            ray.direction = reflect(ray.direction, rcr.hit_tri->n);
+            mul(colour, rcr.hit_tri->material->diffuse_colour, colour);
+            reflect(ray.direction, rcr.hit_tri->n, ray.direction);
             sample_sky(background_illumination, ray.direction, backup_colour);
-            colour *= backup_colour;
+            mul(colour, backup_colour, colour);
         }
         else
         {
             rt_colour sun_colour;
             sample_sky(sky, ray.direction, backup_colour);
             sample_sky(sky, ray.direction, sun_colour);
-            colour *= sun_colour + backup_colour;
+            add(sun_colour, backup_colour, backup_colour);
+            mul(colour, backup_colour, colour);
         }
     }
     else
@@ -46,7 +47,7 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
         // otherwise, sample the sky and terminate raycast
         sample_sky(sky, ray.direction, colour);
     }
-    
+
     colour_buffer[buffer_pos] = colour;
 }
 

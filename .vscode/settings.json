@@ -1,6 +1,9 @@
 {
     "C_Cpp.errorSquiggles": "enabled",
     "files.associations": {
-        "rt_graphics.h": "c"
+        "rt_graphics.h": "c",
+        "chrono": "cpp",
+        "cmath": "cpp",
+        "cstdlib": "cpp"
     }
 }
