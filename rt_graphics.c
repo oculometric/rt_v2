@@ -8,7 +8,7 @@ void rt_vbuf::render()
     rt_vector2 pixel = rt_vector2{ 0,0 };
     for (uint32_t p = 0; p < buffer_length; p++)
     {
-        //render_pixel(pixel, p);
+        render_pixel(pixel, p);
 
         pixel.u += 1;
         if (pixel.u >= camera.view_size_pixels.u)
