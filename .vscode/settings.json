@@ -1,7 +1,6 @@
 {
+    "C_Cpp.errorSquiggles": "enabled",
     "files.associations": {
-        "iostream": "cpp",
-        "chrono": "cpp",
-        "ostream": "cpp"
+        "rt_graphics.h": "c"
     }
 }

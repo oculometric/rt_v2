@@ -1,6 +1,11 @@
 #include "rt_raycast.h"
 
-uint8_t rt_gbuf::check_triangle(rt_tri * tri, rt_ray & ray, rt_raycast_result & res)
+uint8_t rt_gbuf::raycast(rt_ray &, rt_raycast_result &)
+{
+    return 0;
+}
+
+uint8_t rt_gbuf::check_triangle(rt_tri *tri, rt_ray &ray, rt_raycast_result &res)
 {
     // check for parallelness to the plane
     float dot = tri->n ^ ray.direction;

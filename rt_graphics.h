@@ -13,14 +13,13 @@ struct rt_options
     uint8_t samples_per_pixel;
     uint8_t dithering_mode;
     uint8_t view_transform;
-    uint8_t sample_depth;
 };
 
 class rt_vbuf
 {
 private:
     rt_colour * colour_buffer;
-    rt_colour * depth_buffer;
+    float * depth_buffer;
     rt_colour * normal_buffer;
     rt_colour * composite_buffer;
 

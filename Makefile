@@ -1,2 +1,2 @@
 all:
-	gcc -O0 *.cpp -o main
+	g++ -O3 -mgeneral-regs-only *.cpp -o main
