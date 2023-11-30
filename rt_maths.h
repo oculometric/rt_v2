@@ -17,6 +17,13 @@
 #define _TAN_F_5    0.003592128037
 #define _TAN_F_6    0.001455834387
 
+#define _ASIN_F_1   0.1666666667
+#define _ASIN_F_2   0.04464285714
+#define _ASIN_F_3   0.03038194444
+#define _ASIN_F_4   0.02237215909
+#define _ASIN_F_5   0.01735276442
+#define _ASIN_F_6   0.01396484375
+
 static inline void tanf(const float & f, float & o)
 {
     float t = f;
@@ -33,6 +40,25 @@ static inline void tanf(const float & f, float & o)
     acc += t*_TAN_F_5;
     t *= f*f;
     acc += t*_TAN_F_6;
+    o = acc;
+}
+
+static inline void asinf(const float & f, float & o)
+{
+    float t = f;
+    float acc = t;
+    t *= f*f;
+    acc += t*_ASIN_F_1;
+    t *= f*f;
+    acc += t*_ASIN_F_2;
+    t *= f*f;
+    acc += t*_ASIN_F_3;
+    t *= f*f;
+    acc += t*_ASIN_F_4;
+    t *= f*f;
+    acc += t*_ASIN_F_5;
+    t *= f*f;
+    acc += t*_ASIN_F_6;
     o = acc;
 }
 
