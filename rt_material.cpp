@@ -10,5 +10,7 @@ void sample_sky(rt_simplesky & sky, rt_vector3 & dir, rt_colour & col)
 
 void sample_sun(rt_sun & sun, rt_vector3 & dir, rt_colour & col)
 {
-    col = acosf(dot(sun.direction, dir)) <= sun.angle ? sun.colour : rt_vector3{ 0,0,0 };
+    float d;
+    dot(sun.direction, dir, d);
+    col = d >= sun.cos_angle ? sun.colour : rt_vector3{ 0,0,0 };
 }

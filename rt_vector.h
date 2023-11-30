@@ -28,7 +28,7 @@ static inline bool operator==(const rt_vector3 & v, const rt_vector3 & w) { retu
 
 // dot product between two vectors. this represents the magnitude of the two vectors multiplied together,
 // multiplied by the cosine of the angle between them
-static inline float dot(const rt_vector3 & v, const rt_vector3 & w) { return (v.x*w.x)+(v.y*w.y)+(v.z*w.z); }
+static inline void dot(const rt_vector3 & v, const rt_vector3 & w, float & o) { o = (v.x*w.x)+(v.y*w.y)+(v.z*w.z); }
 // cross product. this represents the magnitude of the two vectors multiplied together, 
 // multiplied by the sine of the angle between them, multiplied by the vector which is normal to
 // the two input vectors. when oriented with the two vectors pointing as upward as possible visually,
@@ -36,12 +36,12 @@ static inline float dot(const rt_vector3 & v, const rt_vector3 & w) { return (v.
 static inline void cross(const rt_vector3 & v, const rt_vector3 & w, rt_vector3 & o) { o.x=(v.y*w.z)-(v.z*w.y); o.y=(v.z*w.x)-(v.x*w.z); o.z=(v.x*w.y)-(v.y*w.x); }
 
 // square magnitude of a vector
-static inline float mag_sq(const rt_vector3 & v) { return (v.x*v.x)+(v.y*v.y)+(v.z*v.z); }
+static inline void mag_sq(const rt_vector3 & v, float & o) { o = (v.x*v.x)+(v.y*v.y)+(v.z*v.z); }
 // magnitude of a vector
-static inline float mag(const rt_vector3 & v) { return sqrt(mag_sq(v)); }
+static inline void mag(const rt_vector3 & v, float & o) { mag_sq(v,o); sqrt(o,o); }
 // normalise a vector, i.e. divide by its magnitude to make its length equal to 1
-static inline void norm_self(rt_vector3 & v) { float m = mag(v); if (m > 0) div(v, mag(v), v); }
-static inline void norm_copy(const rt_vector3 & v, rt_vector3 & o) { float m = mag(v); o=v; if (m > 0) div(v, mag(v), o); }
+static inline void norm_self(rt_vector3 & v) { float m; mag(v, m); if (m > 0) div(v, m, v); }
+static inline void norm_copy(const rt_vector3 & v, rt_vector3 & o) { float m; mag(v, m); o=v; if (m > 0) div(v, m, o); }
 
 // a colour is an equivalent type
 typedef rt_vector3 rt_colour;
@@ -87,7 +87,7 @@ static inline bool operator==(const rt_vector2 & a, const rt_vector2 & b) { retu
 static inline void lerp(const rt_vector3 & v, const rt_vector3 & w, const float f, rt_vector3 & o) { o.x=v.x+((w.x-v.x)*f); o.y=v.y+((w.y-v.y)*f); o.z=v.z+((w.z-v.z)*f); }
 // reflect v in w, where w can be interpreted as a vector normal to a mirror in which v is reflected
 // w must be normalised
-static inline void reflect(const rt_vector3 & v, const rt_vector3 & w, rt_vector3 & o) { mul(w, dot(v,w)*2, o); sub(v, o, o); }
+static inline void reflect(const rt_vector3 & v, const rt_vector3 & w, rt_vector3 & o) { float f; dot(v,w,f); f = f * 2.0; mul(w, f, o); sub(v, o, o); }
 // perturb v parallel to w by d.u, and perpendicular to w and v by d.v
 // v and w should be normalised if the scaling of the offset d is to be correct
 static inline void perturb(const rt_vector3 & v, const rt_vector3 & w, const rt_vector2 & d, rt_vector3 & o) { cross(v, w, o); o.x=v.x+(w.x*d.u)+(o.x*d.v); o.y=v.y+(w.y*d.u)+(o.y*d.v); o.z=v.z+(w.z*d.u)+(o.z*d.v); }

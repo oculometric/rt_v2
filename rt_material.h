@@ -24,7 +24,7 @@ struct rt_sun
 {
     rt_colour colour;
     rt_vector3 direction;
-    float angle;
+    float cos_angle;
 };
 
 void sample_sun(rt_sun &, rt_vector3 &, rt_colour &);

@@ -4,6 +4,7 @@
         "rt_graphics.h": "c",
         "chrono": "cpp",
         "cmath": "cpp",
-        "cstdlib": "cpp"
+        "cstdlib": "cpp",
+        "climits": "cpp"
     }
 }

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <chrono>
-#include <math.h>
 #include <climits>
 #include "rt_vector.h"
 
@@ -93,7 +92,7 @@ int main()
         randomise_vector(x);
         randomise_vector(y);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        resf = dot(x,y);
+        dot(x,y, resf);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -161,7 +160,7 @@ int main()
     {
         randomise_vector(x);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        resf = mag_sq(x);
+        mag_sq(x, resf);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
@@ -173,7 +172,7 @@ int main()
     {
         randomise_vector(x);
         start = chrono::high_resolution_clock::now().time_since_epoch();
-        resf = mag(x);
+        mag(x, resf);
         end = chrono::high_resolution_clock::now().time_since_epoch();
         total += end-start;
     }
