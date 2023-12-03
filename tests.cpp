@@ -234,9 +234,21 @@ int main()
     video_buffer.camera.view_size_pixels = rt_vector2{640,480};
 
     rt_tri tr;
-    tr.v1 = rt_vector3{0,0,-5};
-    tr.v2 = rt_vector3{0,-0.5,0};
+    tr.v1 = rt_vector3{-1,0,-5};
+    tr.v2 = rt_vector3{0,-2,0};
     tr.v3 = rt_vector3{0,0,5};
+
+    video_buffer.graphics_buffer.insert_triangle(tr.v1, tr.v2, tr.v3);
+
+    tr.v1 = rt_vector3{2,0,5};
+    tr.v2 = rt_vector3{2,2,0};
+    tr.v3 = rt_vector3{1,0,-5};
+
+    video_buffer.graphics_buffer.insert_triangle(tr.v1, tr.v2, tr.v3);
+
+    tr.v1 = rt_vector3{-10,-2,5};
+    tr.v2 = rt_vector3{10,-2,5};
+    tr.v3 = rt_vector3{-10,-2,-5};
 
     video_buffer.graphics_buffer.insert_triangle(tr.v1, tr.v2, tr.v3);
 
