@@ -6,13 +6,13 @@
 
 struct rt_camera
 {
-    float near_clip;
-    float far_clip;
+    float near_clip = 0.02f;
+    float far_clip = 100.0f;
 
-    float fog_start;
-    float fog_end;
+    float fog_start = 0.02f;
+    float fog_end = 90.0f;
 
-    float field_of_view;
+    float field_of_view = 90.0f;
 
     rt_vector3 position;
     rt_vector3 look_direction;

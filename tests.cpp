@@ -2,6 +2,7 @@
 #include <chrono>
 #include <climits>
 #include "rt_vector.h"
+#include "rt_graphics.h"
 #include "bmp.h"
 
 using namespace std;
@@ -26,44 +27,8 @@ void describe(rt_vector3 v)
     cout << "(" << v.x << "," << v.y << "," << v.z << ")" << endl;
 }
 
-int main()
+void perform_timing()
 {
-    cout << "Generating 32x32 greyscale map..." << endl;
-    uint8_t buffer[32*32];
-    for (int i = 0; i < 32*32; i++)
-    {
-        buffer[i] = i%256;
-        //buffer[i] = i%2 * 255;
-    }
-
-    write_bmp(buffer, 32, 32, 1, "demo.bmp");
-
-    cout << "Generating demo image..." << endl;
-    uint8_t among[8*8] = 
-    {
-        0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
-        0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
-        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
-        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0xFF,
-        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
-        0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
-        0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-        0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00
-    };
-
-    write_bmp(among, 8, 8, 1, "among.bmp");
-
-    uint8_t fcb[64*64*3];
-    for (int i = 0; i < 64*64; i++)
-    {
-        fcb[(i*3)] = i%255;
-        fcb[(i*3) + 1] = (i%2 * 255) + i/4;
-        fcb[(i*3) + 2] = i%4 * 63;
-    }
-
-    write_bmp(fcb, 64, 64, 3, "fullcolour.bmp");
-
-
     cout << "Timing addition..." << endl;
     chrono::steady_clock::duration total = chrono::nanoseconds(0);
     chrono::steady_clock::duration start;
@@ -216,4 +181,72 @@ int main()
     cout << "Time per operation (us): " << (float)(total.count()/OPERATIONS_TEST)/1000.0 << endl;
 
     cout << "All tests done." << endl;
+}
+
+int main()
+{
+    cout << "Generating 32x32 greyscale map..." << endl;
+    uint8_t buffer[32*32];
+    for (int i = 0; i < 32*32; i++)
+    {
+        buffer[i] = i%256;
+        //buffer[i] = i%2 * 255;
+    }
+
+    write_bmp(buffer, 32, 32, 1, "demo.bmp");
+
+    cout << "Generating demo image..." << endl;
+    uint8_t among[8*8] = 
+    {
+        0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
+        0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
+        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0xFF,
+        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+        0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
+        0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+        0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00
+    };
+
+    write_bmp(among, 8, 8, 1, "among.bmp");
+
+    uint8_t fcb[64*64*3];
+    for (int i = 0; i < 64*64; i++)
+    {
+        fcb[(i*3)] = i%255;
+        fcb[(i*3) + 1] = (i%2 * 255) + i/4;
+        fcb[(i*3) + 2] = i%4 * 63;
+    }
+
+    write_bmp(fcb, 64, 64, 3, "fullcolour.bmp");
+
+
+    //perform_timing();
+
+
+    cout << "Starting renderer" << endl;
+
+    rt_vbuf video_buffer;
+    video_buffer.sky = rt_simplesky{ rt_colour{0.17254901961, 0.49019607843, 0.67058823529}, rt_colour{0.99215686275, 0.65882352941, 0.53333333333}, rt_colour{0,0,0}};
+    video_buffer.camera.position = rt_vector3{-10,0,0};
+    video_buffer.camera.look_direction = rt_vector3{1,0,0};
+    video_buffer.camera.field_of_view = 120;
+    video_buffer.camera.view_size_pixels = rt_vector2{640,480};
+
+    video_buffer.render();
+    
+    uint8_t output_buffer[640*480*3];
+
+    video_buffer.blit(output_buffer, VBUF_COLOUR);
+    write_bmp(output_buffer, 640, 480, 3, "colour.bmp");
+
+    video_buffer.blit(output_buffer, VBUF_NORMAL);
+    write_bmp(output_buffer, 640, 480, 3, "normal.bmp");
+
+    video_buffer.blit(output_buffer, VBUF_DEPTH);
+    write_bmp(output_buffer, 640, 480, 1, "depth.bmp");
+
+    video_buffer.blit(output_buffer, VBUF_COMPOSITE);
+    write_bmp(output_buffer, 640, 480, 3, "composite.bmp");
+
 }

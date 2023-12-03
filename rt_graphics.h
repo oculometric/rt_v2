@@ -5,6 +5,11 @@
 #include "rt_maths.h"
 #include "rt_camera.h"
 
+#define VBUF_COMPOSITE 0
+#define VBUF_COLOUR 1
+#define VBUF_NORMAL 2
+#define VBUF_DEPTH 3
+
 // TODO: dithering mode defines
 // TODO: view transform mode defines
 
@@ -36,7 +41,7 @@ public:
     rt_gbuf graphics_buffer;
 
     void render();
-    void blit(uint8_t *, uint8_t, uint8_t);
+    void blit(uint8_t *, uint8_t);
 };
 
 #endif

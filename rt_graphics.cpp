@@ -1,6 +1,9 @@
 #include "rt_graphics.h"
 #include "rt_camera.h"
 
+#include <iostream>
+using namespace std;
+
 void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
 {
     rt_colour colour{ 1,1,1 };
@@ -9,10 +12,12 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
 
     // initial raycast
     ray_for_pixel(camera, pixel, ray);
+    //cout << "ray for pixel " << pixel.u << " " << pixel.v << ": " << ray.direction.x << " " << ray.direction.y << " " << ray.direction.z << " ";
     graphics_buffer.raycast(ray, rcr);
 
     if (rcr.hit_tri != NULL)
     {
+        cout << "HIT!" << endl;
         // if intersected, reflect and recast
         colour = rcr.hit_tri->material->diffuse_colour;
         reflect(ray.direction, rcr.hit_tri->n, ray.direction);
@@ -46,6 +51,9 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
     {
         // otherwise, sample the sky and terminate raycast
         sample_sky(sky, ray.direction, colour);
+        //cout << "sky sample only, colour: " << colour.x << " " << colour.y << " " << colour.z << endl;
+        depth_buffer[buffer_pos] = camera.far_clip;
+        normal_buffer[buffer_pos] = ray.direction;
     }
 
     colour_buffer[buffer_pos] = colour;
@@ -56,6 +64,14 @@ void rt_vbuf::render()
     compute_vectors(camera);
     buffer_length = camera.view_size_pixels.u * camera.view_size_pixels.v;
     
+    colour_buffer = new rt_colour[buffer_length];
+    normal_buffer = new rt_colour[buffer_length];
+    composite_buffer = new rt_colour[buffer_length];
+    depth_buffer = new float[buffer_length];
+    // TODO: fix the obvious memory leak here
+
+
+    // TODO: multiple samples per pixel
     rt_vector2 pixel = rt_vector2{ 0,0 };
     for (uint32_t p = 0; p < buffer_length; p++)
     {
@@ -66,6 +82,34 @@ void rt_vbuf::render()
         {
             pixel.u = 0;
             pixel.v += 1;
+        }
+    }
+
+    // TODO: composite, apply view transform
+}
+
+void rt_vbuf::blit(uint8_t * out_buffer, uint8_t buffer_selection)
+{
+    if (buffer_selection == VBUF_DEPTH)
+    {
+        for (int i = 0; i < buffer_length; i++)
+        {
+            out_buffer[i] = (uint8_t)(((depth_buffer[i]-camera.near_clip)/(camera.far_clip-camera.near_clip))*255);
+        }
+    }
+    else
+    {
+        rt_colour * in_buffer;
+        if (buffer_selection == VBUF_COMPOSITE) in_buffer = composite_buffer;
+        else if (buffer_selection == VBUF_COLOUR) in_buffer = colour_buffer;
+        else if (buffer_selection == VBUF_NORMAL) in_buffer = normal_buffer;
+        else return;
+
+        for (int i = 0; i < buffer_length; i++)
+        {
+            out_buffer[(i*3) + 0] = (uint8_t)(in_buffer[i].x*255);
+            out_buffer[(i*3) + 1] = (uint8_t)(in_buffer[i].y*255);
+            out_buffer[(i*3) + 2] = (uint8_t)(in_buffer[i].z*255);
         }
     }
 }
