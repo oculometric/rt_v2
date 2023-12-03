@@ -8,18 +8,17 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
 {
     rt_colour colour{ 1,1,1 };
     rt_ray ray;
-    rt_raycast_result rcr{ NULL,0,0,{ 0,0,0 } };
+    rt_raycast_result rcr;
 
     // initial raycast
     ray_for_pixel(camera, pixel, ray);
-    //cout << "ray for pixel " << pixel.u << " " << pixel.v << ": " << ray.direction.x << " " << ray.direction.y << " " << ray.direction.z << " ";
     graphics_buffer.raycast(ray, rcr);
 
     if (rcr.hit_tri != NULL)
     {
         cout << "HIT!" << endl;
         // if intersected, reflect and recast
-        colour = rcr.hit_tri->material->diffuse_colour;
+        colour = /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{0.5,0.5,0.5};
         reflect(ray.direction, rcr.hit_tri->n, ray.direction);
         ray.origin = rcr.point;
 
@@ -33,7 +32,7 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
         rt_colour backup_colour;
         if (rcr.hit_tri != NULL)
         {
-            mul(colour, rcr.hit_tri->material->diffuse_colour, colour);
+            mul(colour, /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{0.5,0.5,0.5}, colour);
             reflect(ray.direction, rcr.hit_tri->n, ray.direction);
             sample_sky(background_illumination, ray.direction, backup_colour);
             mul(colour, backup_colour, colour);
@@ -51,7 +50,6 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
     {
         // otherwise, sample the sky and terminate raycast
         sample_sky(sky, ray.direction, colour);
-        //cout << "sky sample only, colour: " << colour.x << " " << colour.y << " " << colour.z << endl;
         depth_buffer[buffer_pos] = camera.far_clip;
         normal_buffer[buffer_pos] = ray.direction;
     }
@@ -63,6 +61,10 @@ void rt_vbuf::render()
 {
     compute_vectors(camera);
     buffer_length = camera.view_size_pixels.u * camera.view_size_pixels.v;
+
+    graphics_buffer.cull_backfaces = false;
+    graphics_buffer.near_clip = camera.near_clip;
+    graphics_buffer.far_clip = camera.far_clip;
     
     colour_buffer = new rt_colour[buffer_length];
     normal_buffer = new rt_colour[buffer_length];

@@ -1,11 +1,60 @@
 #include "rt_raycast.h"
 
-uint8_t rt_gbuf::raycast(rt_ray &, rt_raycast_result &)
+rt_tri * rt_gbuf::insert_triangle(rt_vector3 & v1, rt_vector3 & v2, rt_vector3 & v3)
 {
-    return 0;
+    rt_tri * tri = new rt_tri;
+    tri->v1 = v1;
+    tri->v2 = v2;
+    tri->v3 = v3;
+    precompute_tri_constants(tri);
+
+    rt_tri_node * tri_node = new rt_tri_node;
+    tri_node->next = NULL;
+    tri_node->tri = tri;
+
+    if (triangle_buffer == NULL)
+    {
+        tri_node->last = NULL;
+        triangle_buffer = tri_node;
+    }
+    else
+    {
+        rt_tri_node * last = triangle_buffer;
+        while (last->next != NULL) last = last->next;
+        last->next = tri_node;
+        tri_node->last = last;
+    }
+
+    return tri;
 }
 
-uint8_t rt_gbuf::check_triangle(rt_tri *tri, rt_ray &ray, rt_raycast_result &res)
+uint8_t rt_gbuf::raycast(rt_ray & ray, rt_raycast_result & res)
+{
+    res.distance = far_clip;
+    res.hit_tri = NULL;
+    res.point = rt_vector3{0,0,0};
+    res.r_dot_n = 0;
+    
+    float far_clip_tmp = far_clip;
+    
+    rt_tri_node * next_tri = triangle_buffer;
+    uint8_t status = 0;
+    uint8_t best_status = 0;
+    while (next_tri != NULL)
+    {
+        status = check_triangle(next_tri->tri, ray, res);
+        if (status == RAYCAST_VALID_INTERSECTION)
+        {
+            far_clip = res.distance;
+        }
+        if (status > best_status) status = best_status;
+        next_tri = next_tri->next;
+    }
+    far_clip = far_clip_tmp;
+    return status;
+}
+
+uint8_t rt_gbuf::check_triangle(rt_tri * tri, rt_ray & ray, rt_raycast_result & res)
 {
     rt_vector3 tmp;
     // check for parallelness to the plane
