@@ -38,7 +38,7 @@ static inline void cross(const rt_vector3 & v, const rt_vector3 & w, rt_vector3 
 // square magnitude of a vector
 static inline void mag_sq(const rt_vector3 & v, float & o) { o = (v.x*v.x)+(v.y*v.y)+(v.z*v.z); }
 // magnitude of a vector
-static inline void mag(const rt_vector3 & v, float & o) { mag_sq(v,o); sqrt(o,o); }
+static inline void mag(const rt_vector3 & v, float & o) { mag_sq(v,o); o = sqrt(o); }
 // normalise a vector, i.e. divide by its magnitude to make its length equal to 1
 static inline void norm_self(rt_vector3 & v) { float m; mag(v, m); if (m > 0) div(v, m, v); }
 static inline void norm_copy(const rt_vector3 & v, rt_vector3 & o) { float m; mag(v, m); o=v; if (m > 0) div(v, m, o); }

@@ -2,6 +2,7 @@
 #include <chrono>
 #include <climits>
 #include "rt_vector.h"
+#include "bmp.h"
 
 using namespace std;
 
@@ -27,6 +28,42 @@ void describe(rt_vector3 v)
 
 int main()
 {
+    cout << "Generating 32x32 greyscale map..." << endl;
+    uint8_t buffer[32*32];
+    for (int i = 0; i < 32*32; i++)
+    {
+        buffer[i] = i%256;
+        //buffer[i] = i%2 * 255;
+    }
+
+    write_bmp(buffer, 32, 32, 1, "demo.bmp");
+
+    cout << "Generating demo image..." << endl;
+    uint8_t among[8*8] = 
+    {
+        0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
+        0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
+        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0xFF,
+        0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+        0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
+        0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+        0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00
+    };
+
+    write_bmp(among, 8, 8, 1, "among.bmp");
+
+    uint8_t fcb[64*64*3];
+    for (int i = 0; i < 64*64; i++)
+    {
+        fcb[(i*3)] = i%255;
+        fcb[(i*3) + 1] = (i%2 * 255) + i/4;
+        fcb[(i*3) + 2] = i%4 * 63;
+    }
+
+    write_bmp(fcb, 64, 64, 3, "fullcolour.bmp");
+
+
     cout << "Timing addition..." << endl;
     chrono::steady_clock::duration total = chrono::nanoseconds(0);
     chrono::steady_clock::duration start;

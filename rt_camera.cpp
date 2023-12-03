@@ -22,7 +22,7 @@ void compute_vectors(rt_camera & cam)
 
     // calculate the vector which takes you from the camera origin to the top left corner
     float f = cam.field_of_view / 2;
-    tanf(f, f);
+    f = tanf(f);
     mul(cam.look_direction, f, cam.view_topleft_vector);
     sub(cam.view_topleft_vector, cam.view_horizontal_vector, cam.view_topleft_vector);
     sub(cam.view_topleft_vector, cam.view_vertical_vector, cam.view_topleft_vector);

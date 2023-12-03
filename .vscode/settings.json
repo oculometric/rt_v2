@@ -5,6 +5,9 @@
         "chrono": "cpp",
         "cmath": "cpp",
         "cstdlib": "cpp",
-        "climits": "cpp"
+        "climits": "cpp",
+        "cstddef": "cpp",
+        "iosfwd": "cpp",
+        "iostream": "cpp"
     }
 }
