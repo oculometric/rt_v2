@@ -16,7 +16,6 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
 
     if (rcr.hit_tri != NULL)
     {
-        cout << "HIT!" << endl;
         // if intersected, reflect and recast
         colour = /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{0.5,0.5,0.5};
         reflect(ray.direction, rcr.hit_tri->n, ray.direction);
@@ -32,17 +31,18 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
         rt_colour backup_colour;
         if (rcr.hit_tri != NULL)
         {
-            mul(colour, /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{0.5,0.5,0.5}, colour);
-            reflect(ray.direction, rcr.hit_tri->n, ray.direction);
-            sample_sky(background_illumination, ray.direction, backup_colour);
-            mul(colour, backup_colour, colour);
+            cout << "second hit!" << endl;
+            mul(colour, /*rcr.hit_tri->material->diffuse_colour*/ 0, colour);
+            //reflect(ray.direction, rcr.hit_tri->n, ray.direction);
+            //sample_sky(background_illumination, ray.direction, backup_colour);
+            //mul(colour, backup_colour, colour);
         }
         else
         {
             rt_colour sun_colour;
             sample_sky(sky, ray.direction, backup_colour);
-            sample_sky(sky, ray.direction, sun_colour);
-            add(sun_colour, backup_colour, backup_colour);
+            //sample_sun(sun, ray.direction, sun_colour);
+            //add(sun_colour, backup_colour, backup_colour);
             mul(colour, backup_colour, colour);
         }
     }
