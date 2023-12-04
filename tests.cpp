@@ -227,30 +227,14 @@ int main()
     cout << "Starting renderer" << endl;
 
     rt_vbuf video_buffer;
-    video_buffer.sky = rt_simplesky{ rt_colour{0.17254901961, 0.49019607843, 0.67058823529}, rt_colour{0.99215686275, 0.65882352941, 0.53333333333}, rt_colour{0,0,0}};
-    video_buffer.camera.position = rt_vector3{-10,0,0};
-    video_buffer.camera.look_direction = rt_vector3{1,0,0};
-    video_buffer.camera.field_of_view = 90;
-    video_buffer.camera.view_size_pixels = rt_vector2{640,480};
+    video_buffer.sky = new rt_simplesky{ rt_colour{0.17254901961, 0.49019607843, 0.67058823529}, rt_colour{0.99215686275, 0.65882352941, 0.53333333333}, rt_colour{0,0,0}};
+    video_buffer.camera->position = rt_vector3{-10,0,0};
+    video_buffer.camera->look_direction = rt_vector3{1,0,0};
+    video_buffer.camera->field_of_view = 90;
+    video_buffer.camera->view_size_pixels = rt_vector2{640,480};
 
-    rt_tri tr;
-    tr.v1 = rt_vector3{-1,0,-5};
-    tr.v2 = rt_vector3{0,-2,0};
-    tr.v3 = rt_vector3{0,0,5};
-
-    video_buffer.graphics_buffer.insert_triangle(tr.v1, tr.v2, tr.v3);
-
-    tr.v1 = rt_vector3{2,0,5};
-    tr.v2 = rt_vector3{2,2,0};
-    tr.v3 = rt_vector3{1,0,-5};
-
-    video_buffer.graphics_buffer.insert_triangle(tr.v1, tr.v2, tr.v3);
-
-    tr.v1 = rt_vector3{-10,-2,5};
-    tr.v2 = rt_vector3{10,-2,5};
-    tr.v3 = rt_vector3{-10,-2,-5};
-
-    video_buffer.graphics_buffer.insert_triangle(tr.v1, tr.v2, tr.v3);
+    rt_object * teapot = load_obj_file("teapot.obj");
+    video_buffer.graphics_buffer->insert_object(teapot);
 
     video_buffer.render();
     

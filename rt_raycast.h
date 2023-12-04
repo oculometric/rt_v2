@@ -13,7 +13,8 @@
 // holds the result of a raycast check
 struct rt_raycast_result
 {
-    rt_tri * hit_tri;   // pointer to the triangle that was hit
+    rt_object * hit_obj;// pointer to the object that was hit
+    uint16_t hit_tri;   // index of triangle hit within the object (first vertex is at hit_tri*3)
     float distance;     // distance along the ray at which the hit ocurred
     float r_dot_n;      // direction of the ray, dotted with the triangle normal
                         // if > 1, ray collides with the back of a face
@@ -26,10 +27,8 @@ struct rt_raycast_result
 class rt_gbuf
 {
 private:
-    // pointer to the first triangle buffer node, linked-list
-    rt_tri_node * triangle_buffer;
-    // pointer to the first top-level bvh buffer node, linked-list
-    rt_bvh_node * bvh_buffer;
+    // pointer to the first object buffer node, linked list
+    rt_buffer_node<rt_object *> * object_buffer;
     
 public:
     // near and far clip planes for rays
@@ -37,15 +36,14 @@ public:
     float far_clip;
     bool cull_backfaces;
 
-    // insert a set of 3 vertices, forming a triangle, into the graphics buffer
-    // remember that indexed clockwise, the normal will point into the camera
-    rt_tri * insert_triangle(rt_vector3 &, rt_vector3 &, rt_vector3 &);
+    // insert new object into the object buffer
+    void insert_object(const rt_object * obj);
 
     // cast a ray into the graphics buffer, and find the triangle closest to the origin which the ray intersects with
     // return value will have LSB set if there was an intersection found
-    uint8_t raycast(rt_ray &, rt_raycast_result &);
+    uint8_t raycast(const rt_ray &, rt_raycast_result &);
 
-    // test for intersection with a specific triangle
+    // test for intersection with a specific triangle index for a particular object (first vertex is at hit_tri*3)
     // return value will be set as follows:
     // 7 - unused
     // 6 - unused
@@ -55,7 +53,9 @@ public:
     // 2 - triangle is not backfacing, or backface culling is disabled
     // 1 - ray non-parallel to plane
     // 0 - valid intersection found
-    uint8_t check_triangle(rt_tri *, rt_ray &, rt_raycast_result &);
+    uint8_t check_triangle(const rt_object *, uint16_t, const rt_ray &, rt_raycast_result &);
 };
+
+bool check_bounds(const rt_bounds &, const rt_ray &);
 
 #endif

@@ -3,22 +3,15 @@
 
 #include "rt_geometry.h"
 
-struct rt_tri_node
+template <typename T>
+struct rt_buffer_node
 {
-    rt_tri_node* last = NULL;
-    rt_tri* tri = NULL;
-    rt_tri_node* next = NULL;
+    rt_buffer_node * last;
+    rt_buffer_node * next;
+    T data;
 };
 
-struct rt_bvh_node;
-
-struct rt_bvh_node
-{
-    rt_bvh_node* last = NULL;
-    rt_bvh_node* children = NULL;
-    rt_tri_node* tri_buffer = NULL;
-    rt_bvh_node* next = NULL;
-    rt_bounds bounds;
-};
+template <typename T>
+uint32_t size(rt_buffer_node<T> *);
 
 #endif

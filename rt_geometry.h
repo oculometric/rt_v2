@@ -10,35 +10,52 @@ struct rt_ray
     rt_vector3 origin, direction;
 };
 
-// represents a triangle
-struct rt_tri
-{
-    // three vertex points, ABC
-    rt_vector3 v1, v2, v3;
-    // the vectors AB and AC
-    rt_vector3 v1_2, v1_3;
-    // normal vector (which points into the camera with A at the bottom and
-    // B on the left, C on the right, aka numbered clockwise)
-    rt_vector3 n;
-    // constants for raycasting
-    float d12_12;
-    float d12_13;
-    float d13_13;
-    float inv_denom;
-    // material which holds data about how this triangle should behave in the scene
-    rt_material * material;
-    // UV coordinates for vertices
-    rt_vector2 uv1, uv2, uv3;
-};
-
-void precompute_tri_constants(rt_tri *);
-
 // represents a bounding box with bottom corner min and upper corner max
 struct rt_bounds
 {
     rt_vector3 min, max;
+    rt_vector3 center,size;
 };
 
-#define BVH_DIVISIONS_PER_LEVEL 2
+// stores a block of triangles for the renderer to render
+// for optimal performance, triangles should be distributed to objects
+// according to their localisation in the scene
+struct rt_object
+{
+    // lists all the vertices used by the object
+    rt_vector3 * vertices;
+    // stores indices of vertices used by each triangle, length should be 3 times the number of trianlges
+    uint16_t * triangles;
+    // stores normal data for each triangle, length should be equal to number of triangles
+    rt_vector3 * normals;
+    // list of pointers to materials used on this object
+    rt_material ** materials;
+    // indices of materials used by triangles, length should be equal to number of triangles
+    uint16_t * material_indices;
+    // stores UV coordinates for vertices, length should be 3 times the number of triangles
+    rt_vector2 * uvs;
+
+    // stores the 1->2 and 1->3 vectors for each triangle, length should be 2 times number of triangles. never directly touch this
+    rt_vector3 * edge_vectors;
+    // stores constants for raycasting, length should be 3 times number of triangles. never directly touch this
+    float * edge_dots;
+    // inverse denominators, length should be equal to number of triangles. never directly touch this
+    float * inv_denoms;
+    // bounding box of the object. never directly touch this
+    rt_bounds bounds;
+
+    // list length data for vertices and triangles. never directly touch these
+    uint16_t vertices_count;
+    uint16_t vertices_capacity;
+    uint16_t triangles_count;
+    uint16_t triangles_capacity;
+};
+
+// precompute information about triangles to accelerate rendering
+// MUST be called before you start rendering
+void precompute_tri_constants(rt_object *);
+
+// load an object from a .obj file
+rt_object * load_obj_file(const char *);
 
 #endif

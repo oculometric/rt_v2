@@ -18,7 +18,7 @@ struct rt_simplesky
     rt_colour lower;
 };
 
-void sample_sky(rt_simplesky &, rt_vector3 &, rt_colour &);
+void sample_sky(const rt_simplesky *, const rt_vector3 &, rt_colour &);
 
 struct rt_sun
 {
@@ -27,6 +27,6 @@ struct rt_sun
     float cos_angle;
 };
 
-void sample_sun(rt_sun &, rt_vector3 &, rt_colour &);
+void sample_sun(const rt_sun *, const rt_vector3 &, rt_colour &);
 
 #endif

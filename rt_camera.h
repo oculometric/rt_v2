@@ -28,8 +28,8 @@ struct rt_camera
     rt_vector3 view_topleft_vector;
 };
 
-void compute_vectors(rt_camera &);
+void compute_vectors(rt_camera *);
 
-void ray_for_pixel(rt_camera &, rt_vector2 &, rt_ray &);
+void ray_for_pixel(const rt_camera *, const rt_vector2 &, rt_ray &);
 
 #endif

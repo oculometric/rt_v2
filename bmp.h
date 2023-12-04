@@ -38,7 +38,7 @@ static void output_uint16(uint16_t t, ofstream & stream)
     stream << t_0 << t_1;
 }
 
-static bool write_bmp(uint8_t * buffer, uint32_t width, uint32_t height, uint8_t bytes_per_pixel, char * file_path)
+static bool write_bmp(const uint8_t * buffer, uint32_t width, uint32_t height, uint8_t bytes_per_pixel, const char * file_path)
 {
     if (width == 0 || height == 0) return false;
     if (buffer == NULL) return false;
