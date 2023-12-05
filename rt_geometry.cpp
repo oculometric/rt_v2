@@ -6,10 +6,10 @@ using namespace std;
 void precompute_tri_constants(rt_object * obj)
 {
     // reallocate necessary buffers
-    if (obj->edge_vectors != NULL) delete[] obj->edge_vectors;
-    if (obj->edge_dots != NULL) delete[] obj->edge_dots;
-    if (obj->inv_denoms != NULL) delete[] obj->inv_denoms;
-    if (obj->normals != NULL) delete[] obj->normals;
+    if (obj->edge_vectors != NULL) { delete[] obj->edge_vectors; obj->edge_vectors = NULL; }
+    if (obj->edge_dots != NULL) { delete[] obj->edge_dots; obj->edge_dots = NULL; }
+    if (obj->inv_denoms != NULL) { delete[] obj->inv_denoms; obj->inv_denoms = NULL; }
+    if (obj->normals != NULL) { delete[] obj->normals; obj->normals = NULL; }
 
     uint16_t triangles_num = obj->triangles_count/3;
 
@@ -190,9 +190,16 @@ rt_object * load_obj_file(const char * path)
         {   // read face data. we only handle triangles here
             split(line, split_line, ' ');
             if (split_line.size() < 4) { f++; continue; }
+            cout << "line is: " << line << endl;
+            cout << split_line[0] << endl;
+            cout << split_line[1] << endl;
+            cout << split_line[2] << endl;
+            cout << split_line[3] << endl;
             // process first vertex data
             split(split_line[1], split_section, '/');
-            obj->triangles[f*3] = stoi(split_section[0]);
+            cout << "first vertex: " << endl;
+            cout << split_section[0] << ":" << split_section[1] << ":" << split_section[2] << endl;
+            obj->triangles[f*3] = stoi(split_section[0])-1;
             if (split_section.size() > 1)
             {
                 if (split_section[1] != "") obj->uvs[f*3] = uv_temp[stoi(split_section[1])];
@@ -205,7 +212,9 @@ rt_object * load_obj_file(const char * path)
             }
             // process second vertex data
             split(split_line[2], split_section, '/');
-            obj->triangles[(f*3)+1] = stoi(split_section[0]);
+            cout << "second vertex: " << endl;
+            cout << split_section[0] << ":" << split_section[1] << ":" << split_section[2] << endl;
+            obj->triangles[(f*3)+1] = stoi(split_section[0])-1;
             if (split_section.size() > 1)
             {
                 if (split_section[1] != "") obj->uvs[(f*3)+1] = uv_temp[stoi(split_section[1])];
@@ -218,7 +227,9 @@ rt_object * load_obj_file(const char * path)
             }
             // process third vertex data
             split(split_line[3], split_section, '/');
-            obj->triangles[(f*3)+1] = stoi(split_section[0]);
+            cout << "third vertex: " << endl;
+            cout << split_section[0] << ":" << split_section[1] << ":" << split_section[2] << endl;
+            obj->triangles[(f*3)+2] = stoi(split_section[0])-1;
             if (split_section.size() > 1)
             {
                 if (split_section[1] != "") obj->uvs[(f*3)+2] = uv_temp[stoi(split_section[1])];
@@ -229,6 +240,10 @@ rt_object * load_obj_file(const char * path)
                 if (split_section[2] != "") obj->vertex_normals[(f*3)+2] = vnorm_temp[stoi(split_section[2])];
                 else obj->vertex_normals[(f*3)+2] = rt_vector3{0,0,0};
             }
+            int va = obj->triangles[f*3];
+            int vb = obj->triangles[(f*3)+1];
+            int vc = obj->triangles[(f*3)+2];
+            cout << "face constructed from vertices: " << va << " " << obj->vertices[va] << " " << vb << " " << obj->vertices[vb] << " " << vc << obj->vertices[vc] << endl;
 
             f++;
         }

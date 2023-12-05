@@ -23,6 +23,7 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
     {
         // if intersected, reflect and recast
         colour = /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{1,0,1};
+        index_buffer[buffer_pos] = rcr.hit_tri;
     }
     else
     {
@@ -30,6 +31,7 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
         sample_sky(sky, ray.direction, colour);
         depth_buffer[buffer_pos] = camera->far_clip;
         normal_buffer[buffer_pos] = ray.direction;
+        index_buffer[buffer_pos] = 0;
     }
 
     add(colour_buffer[buffer_pos], colour, colour_buffer[buffer_pos]);
@@ -52,6 +54,7 @@ void rt_vbuf::render()
     normal_buffer = new rt_colour[buffer_length];
     composite_buffer = new rt_colour[buffer_length];
     depth_buffer = new float[buffer_length];
+    index_buffer = new uint16_t[buffer_length];
 
     rt_vector2 pixel = rt_vector2{ 0,0 };
     for (uint32_t p = 0; p < buffer_length; p++)
@@ -93,6 +96,15 @@ void rt_vbuf::blit(uint8_t * out_buffer, uint8_t buffer_selection)
             out_buffer[i] = (uint8_t)(((depth_buffer[i]-camera->near_clip)/(camera->far_clip-camera->near_clip))*255);
         }
     }
+    else if (buffer_selection == VBUF_INDEX)
+    {
+        for (int i = 0; i < buffer_length; i++)
+        {
+            out_buffer[(i*3) + 0] = (uint8_t)(index_buffer[i] & 0xFF);
+            out_buffer[(i*3) + 1] = (uint8_t)((index_buffer[i] >> 8) & 0xFF);
+            out_buffer[(i*3) + 2] = 0;
+        }
+    }
     else
     {
         rt_colour * in_buffer;
@@ -112,10 +124,11 @@ void rt_vbuf::blit(uint8_t * out_buffer, uint8_t buffer_selection)
 
 void rt_vbuf::clean_up()
 {
-    if (colour_buffer != NULL) delete[] colour_buffer;
-    if (normal_buffer != NULL) delete[] normal_buffer;
-    if (depth_buffer != NULL) delete[] depth_buffer;
-    if (composite_buffer != NULL) delete[] composite_buffer;
+    if (colour_buffer != NULL) { delete[] colour_buffer; colour_buffer = NULL; }
+    if (normal_buffer != NULL) { delete[] normal_buffer; normal_buffer = NULL; }
+    if (depth_buffer != NULL) { delete[] depth_buffer; depth_buffer = NULL; }
+    if (composite_buffer != NULL) { delete[] composite_buffer; composite_buffer = NULL; }
+    if (index_buffer != NULL) { delete[] index_buffer; index_buffer = NULL; }
 }
 
 void rt_vbuf::output_buffers()
@@ -141,6 +154,11 @@ void rt_vbuf::output_buffers()
     {
         blit(output_buffer, VBUF_DEPTH);
         write_bmp(output_buffer, camera->view_size_pixels.u, camera->view_size_pixels.v, 1, "depth.bmp");
+    }
+    if (buffers_to_output & (0b1 << VBUF_INDEX))
+    {
+        blit(output_buffer, VBUF_INDEX);
+        write_bmp(output_buffer, camera->view_size_pixels.u, camera->view_size_pixels.v, 3, "index.bmp");
     }
 
     delete[] output_buffer;

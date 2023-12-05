@@ -9,6 +9,7 @@
 #define VBUF_COLOUR 1
 #define VBUF_NORMAL 2
 #define VBUF_DEPTH 3
+#define VBUF_INDEX 4
 
 #define DITHER_NONE 0
 #define DITHER_PATTERN 1
@@ -27,6 +28,7 @@ private:
     float * depth_buffer = NULL;
     rt_colour * normal_buffer = NULL;
     rt_colour * composite_buffer = NULL;
+    uint16_t * index_buffer = NULL;
 
     // precalculated buffer length
     uint32_t buffer_length;

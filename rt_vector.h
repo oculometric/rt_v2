@@ -3,6 +3,8 @@
 
 #include "rt_maths.h"
 
+#include <iostream>
+
 // represents a 3 dimensional vector, with associated operations
 struct rt_vector3
 {
@@ -17,6 +19,12 @@ struct rt_vector3
     // inline void operator/=(const float f) { this->x /= f; this->y /= f; this->z /= f; }
     // inline rt_vector3 operator -() { return rt_vector3{ -this->x, -this->y, -this->z }; }
 };
+
+static inline std::ostream& operator<<(std::ostream & stream, const rt_vector3 & v)
+{
+    stream << "(" << v.x << "," << v.y << "," << v.z << ")";
+    return stream;
+}
 
 static inline void add(const rt_vector3 & v, const rt_vector3 & w, rt_vector3 & o) { o.x=v.x+w.x; o.y=v.y+w.y; o.z=v.z+w.z; }
 static inline void sub(const rt_vector3 & v, const rt_vector3 & w, rt_vector3 & o) { o.x=v.x-w.x; o.y=v.y-w.y; o.z=v.z-w.z; }
