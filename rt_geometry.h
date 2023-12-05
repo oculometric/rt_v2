@@ -1,6 +1,9 @@
 #ifndef RT_GEOMETRY_H
 #define RT_GEOMETRY_H
 
+#include <vector>
+#include <string>
+
 #include "rt_vector.h"
 #include "rt_material.h"
 
@@ -23,26 +26,26 @@ struct rt_bounds
 struct rt_object
 {
     // lists all the vertices used by the object
-    rt_vector3 * vertices;
+    rt_vector3 * vertices = NULL;
     // stores indices of vertices used by each triangle, length should be 3 times the number of triangles
-    uint16_t * triangles;
+    uint16_t * triangles = NULL;
     // list of pointers to materials used on this object
-    rt_material ** materials;
+    rt_material ** materials = NULL;
     // indices of materials used by triangles, length should be equal to number of triangles
-    uint16_t * material_indices;
+    uint16_t * material_indices = NULL;
     // stores UV coordinates for vertices, length should be 3 times the number of triangles
-    rt_vector2 * uvs;
+    rt_vector2 * uvs = NULL;
     // stores normals for vertices, used for surface smoothing. length should be 3 times number of triangles
-    rt_vector3 * vertex_normals;
+    rt_vector3 * vertex_normals = NULL;
 
     // stores normal data for each triangle, length should be equal to number of triangles. never directly touch this
-    rt_vector3 * normals;
+    rt_vector3 * normals = NULL;
     // stores the 1->2 and 1->3 vectors for each triangle, length should be 2 times number of triangles. never directly touch this
-    rt_vector3 * edge_vectors;
+    rt_vector3 * edge_vectors = NULL;
     // stores constants for raycasting, length should be 3 times number of triangles. never directly touch this
-    float * edge_dots;
+    float * edge_dots = NULL;
     // inverse denominators, length should be equal to number of triangles. never directly touch this
-    float * inv_denoms;
+    float * inv_denoms = NULL;
     // bounding box of the object. never directly touch this
     rt_bounds bounds;
 
@@ -59,5 +62,8 @@ void precompute_tri_constants(rt_object *);
 
 // load an object from a .obj file
 rt_object * load_obj_file(const char *);
+
+// split a string at a delimiter
+void split(const std::string, std::vector<std::string> &, const char);
 
 #endif

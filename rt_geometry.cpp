@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
-
+using namespace std;
 void precompute_tri_constants(rt_object * obj)
 {
     // reallocate necessary buffers
@@ -76,30 +75,9 @@ void precompute_tri_constants(rt_object * obj)
     add(obj->bounds.min, obj->bounds.size, obj->bounds.center);
 }
 
-using namespace std;
-
-static void split(string line, vector<string> & split_line, char delim)
-{
-    string section;
-    split_line.clear();
-    for (char c : line)
-    {
-        if (c == delim)
-        {
-            split_line.push_back(section);
-            section.clear();
-        }
-        else
-        {
-            section += c;
-        }
-    }
-    if (section != "") split_line.push_back(section);
-}
-
 rt_object * load_obj_file(const char * path)
 {
-    ifstream file;
+    std::ifstream file;
     file.open(path);
     if (!file.is_open()) return NULL;
 
@@ -109,7 +87,7 @@ rt_object * load_obj_file(const char * path)
     uint16_t found_vnorms = 0;
 
     // prepass to count how many of each we need to allocate for
-    string line;
+    std::string line;
     while(getline(file, line))
     {
         if (line.length() < 2) continue;
@@ -161,8 +139,8 @@ rt_object * load_obj_file(const char * path)
     int f = 0;
     rt_vector3 tmp3;
     rt_vector2 tmp2;
-    vector<string> split_line;
-    vector<string> split_section;
+    std::vector<std::string> split_line;
+    std::vector<std::string> split_section;
     while(getline(file, line))
     {
         if (line.length() < 2) continue;
@@ -257,9 +235,30 @@ rt_object * load_obj_file(const char * path)
     }
 
     file.close();
+    delete[] uv_temp;
+    delete[] vnorm_temp;
 
     // calculate other data about the mesh
     precompute_tri_constants(obj);
 
     return obj;
+}
+
+void split(const std::string line, std::vector<std::string> & split_line, const char delim)
+{
+    std::string section;
+    split_line.clear();
+    for (char c : line)
+    {
+        if (c == delim)
+        {
+            split_line.push_back(section);
+            section.clear();
+        }
+        else
+        {
+            section += c;
+        }
+    }
+    if (section != "") split_line.push_back(section);
 }

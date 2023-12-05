@@ -23,10 +23,10 @@ class rt_vbuf
 {
 private:
     // buffers for different passes
-    rt_colour * colour_buffer;
-    float * depth_buffer;
-    rt_colour * normal_buffer;
-    rt_colour * composite_buffer;
+    rt_colour * colour_buffer = NULL;
+    float * depth_buffer = NULL;
+    rt_colour * normal_buffer = NULL;
+    rt_colour * composite_buffer = NULL;
 
     // precalculated buffer length
     uint32_t buffer_length;
@@ -37,20 +37,23 @@ private:
 
 public:
     // necessary scene objects
-    rt_camera * camera;
-    rt_simplesky * sky;
-    rt_sun * sun;
+    rt_camera * camera = NULL;
+    rt_simplesky * sky = NULL;
+    rt_sun * sun = NULL;
 
     // graphics buffer which manages raycasting into a collection of objects
-    rt_gbuf * graphics_buffer;
+    rt_gbuf * graphics_buffer = NULL;
+
+    // which buffers the config requested output for
+    uint8_t buffers_to_output;
 
     // options for rendering
     // number of samples to perform for each pixel
-    uint8_t samples_per_pixel;
+    uint8_t samples_per_pixel = 1;
     // method of dithering for compositing
-    uint8_t dithering_mode;
+    uint8_t dithering_mode = 0;
     // render transform function to be used for compositing
-    uint8_t view_transform;
+    uint8_t view_transform = 0;
 
     // render the scene into the buffers
     void render();
@@ -61,9 +64,13 @@ public:
     void blit(uint8_t *, uint8_t);
     // delete render buffers
     void clean_up();
+    // output buffers, according to buffers_to_output
+    void output_buffers();
 
     // initialise
     rt_vbuf();
+    // initialise from config file
+    rt_vbuf(const char *);
 };
 
 #endif

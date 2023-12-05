@@ -1,7 +1,11 @@
 #include "rt_graphics.h"
+
 #include "rt_camera.h"
+#include "rt_geometry.h"
+#include "bmp.h"
 
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
@@ -33,14 +37,17 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
 
 void rt_vbuf::render()
 {
+    cout << "computing camera vectors" << endl;
     compute_vectors(camera);
     buffer_length = camera->view_size_pixels.u * camera->view_size_pixels.v;
 
     graphics_buffer->near_clip = camera->near_clip;
     graphics_buffer->far_clip = camera->far_clip;
     
+    cout << "cleaning up" << endl;
     clean_up();
 
+    cout << "rendering scene" << endl;
     colour_buffer = new rt_colour[buffer_length];
     normal_buffer = new rt_colour[buffer_length];
     composite_buffer = new rt_colour[buffer_length];
@@ -62,7 +69,10 @@ void rt_vbuf::render()
         }
     }
 
+    cout << "compositing" << endl;
     composite();
+    cout << "outputting buffers" << endl;
+    output_buffers();
 }
 
 void rt_vbuf::composite()
@@ -108,10 +118,164 @@ void rt_vbuf::clean_up()
     if (composite_buffer != NULL) delete[] composite_buffer;
 }
 
+void rt_vbuf::output_buffers()
+{
+    uint8_t * output_buffer = new uint8_t[buffer_length*3];
+    
+    if (buffers_to_output & (0b1 << VBUF_COLOUR))
+    {
+        blit(output_buffer, VBUF_COLOUR);
+        write_bmp(output_buffer, camera->view_size_pixels.u, camera->view_size_pixels.v, 3, "colour.bmp");
+    }
+    if (buffers_to_output & (0b1 << VBUF_COMPOSITE))
+    {
+        blit(output_buffer, VBUF_COMPOSITE);
+        write_bmp(output_buffer, camera->view_size_pixels.u, camera->view_size_pixels.v, 3, "composite.bmp");
+    }
+    if (buffers_to_output & (0b1 << VBUF_NORMAL))
+    {
+        blit(output_buffer, VBUF_NORMAL);
+        write_bmp(output_buffer, camera->view_size_pixels.u, camera->view_size_pixels.v, 3, "normal.bmp");
+    }
+    if (buffers_to_output & (0b1 << VBUF_DEPTH))
+    {
+        blit(output_buffer, VBUF_DEPTH);
+        write_bmp(output_buffer, camera->view_size_pixels.u, camera->view_size_pixels.v, 1, "depth.bmp");
+    }
+
+    delete[] output_buffer;
+}
+
 rt_vbuf::rt_vbuf()
 {
     camera = new rt_camera;
     sky = new rt_simplesky;
     sun = new rt_sun;
     graphics_buffer = new rt_gbuf;
+    buffers_to_output = 0b0;
+}
+
+rt_vbuf::rt_vbuf(const char * path)
+{
+    camera = new rt_camera;
+    sky = new rt_simplesky;
+    sun = new rt_sun;
+    graphics_buffer = new rt_gbuf;
+    buffers_to_output = 0b0;
+
+    ifstream file;
+    file.open(path);
+    if (!file.is_open()) { cout << "failed to open config file" << endl; return; }
+
+    cout << "attempting to read config file" << endl;
+
+    string line;
+    vector<string> split_line;
+    int i = 0;
+    while (getline(file, line))
+    {
+        i++;
+        if (line.length() < 1) continue;
+        if (line[0] == '#') continue;
+        split(line, split_line, ' ');
+        if (split_line.size() == 0) { cout << "ignoring blank line " << i << endl; continue;}
+        if (split_line[0] == "camera_position")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            camera->position = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+        } else if (split_line[0] == "camera_direction")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            camera->look_direction = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+            norm_self(camera->look_direction);
+        } else if (split_line[0] == "camera_fov")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->field_of_view = stof(split_line[1]);
+        } else if (split_line[0] == "camera_pixels")
+        {
+            if (split_line.size() < 3) { cout << "malformed config at line " << i << endl; return; }
+            camera->view_size_pixels = rt_vector2{ (float)stoi(split_line[1]), (float)stoi(split_line[2]) };
+        } else if (split_line[0] == "camera_nearclip")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->near_clip = stof(split_line[1]);
+        } else if (split_line[0] == "camera_farclip")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->far_clip = stof(split_line[1]);
+        } else if (split_line[0] == "camera_fogstart")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->fog_start = stof(split_line[1]);
+        } else if (split_line[0] == "camera_fogend")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->fog_end = stof(split_line[1]);
+        } else if (split_line[0] == "camera_exposure")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->exposure = stof(split_line[1]);
+        } else if (split_line[0] == "camera_gamma")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            camera->gamma = stof(split_line[1]);
+        } else if (split_line[0] == "sky_upper")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            sky->upper = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+        } else if (split_line[0] == "sky_horizon")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            sky->horizon = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+        } else if (split_line[0] == "sky_lower")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            sky->lower = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+        } else if (split_line[0] == "sun_colour")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            sun->colour = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+        } else if (split_line[0] == "sun_direction")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            sun->direction = rt_vector3{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+            norm_self(sun->direction);
+        }  else if (split_line[0] == "sun_angle")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            sun->cos_angle = cosf(stof(split_line[1]));
+        } else if (split_line[0] == "samples")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            samples_per_pixel = stoi(split_line[1]);
+        } else if (split_line[0] == "dithering_mode")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            dithering_mode = stoi(split_line[1]);
+            if (dithering_mode < 0 || dithering_mode > 2) { dithering_mode = 0; cout << "unsupported dithering mode " << dithering_mode << endl; return; }
+        } else if (split_line[0] == "view_transform")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            view_transform = stoi(split_line[1]);
+            if (view_transform < 0 || view_transform > 2) { view_transform = 0; cout << "unsupported view transform " << view_transform << endl; return; }
+        } else if (split_line[0] == "backface_culling")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            graphics_buffer->cull_backfaces = stoi(split_line[1]);
+        } else if (split_line[0] == "output")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            int pass = stoi(split_line[1]);
+            buffers_to_output |= (0b1 << pass);
+        } else if (split_line[0] == "input")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            string filename_to_load = line.substr(6, line.find('#'));
+            if (filename_to_load.length() == 0) { cout << "malformed config at line " << i << endl; return; }
+            cout << "reading object file " << filename_to_load << endl;
+            rt_object * loaded_obj = load_obj_file(filename_to_load.c_str());
+            if (loaded_obj != NULL) graphics_buffer->insert_object(loaded_obj);
+        }
+    }
 }

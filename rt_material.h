@@ -13,18 +13,18 @@ struct rt_material
 
 struct rt_simplesky
 {
-    rt_colour upper;
-    rt_colour horizon;
-    rt_colour lower;
+    rt_colour upper {1,1,1};
+    rt_colour horizon {0.6,0.6,0.6};
+    rt_colour lower {0,0,0};
 };
 
 void sample_sky(const rt_simplesky *, const rt_vector3 &, rt_colour &);
 
 struct rt_sun
 {
-    rt_colour colour;
-    rt_vector3 direction;
-    float cos_angle;
+    rt_colour colour {10,10,8};
+    rt_vector3 direction {0,0-1};
+    float cos_angle = 0.999;
 };
 
 void sample_sun(const rt_sun *, const rt_vector3 &, rt_colour &);

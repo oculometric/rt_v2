@@ -14,13 +14,13 @@ struct rt_camera
 
     float field_of_view = 90.0f;
 
-    rt_vector3 position;
-    rt_vector3 look_direction;
+    rt_vector3 position {0,0,0};
+    rt_vector3 look_direction {1,0,0};
 
-    rt_vector2 view_size_pixels;
+    rt_vector2 view_size_pixels {4096,3072};
 
-    float exposure;
-    float gamma;
+    float exposure = 1;
+    float gamma = 2.2;
 
     // from here on these values should not be set directly
     rt_vector3 view_horizontal_vector;

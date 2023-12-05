@@ -50,7 +50,6 @@ static bool write_bmp(const uint8_t * buffer, uint32_t width, uint32_t height, u
 
     uint32_t row_size_bytes = ceil((float)(bytes_per_pixel * width) / 4.0f) * 4;
     uint32_t pixel_array_size = row_size_bytes * height;
-    cout << row_size_bytes << endl << pixel_array_size << endl;
 
     // beginning of the bitmap file header
     // 'BM' magic number
