@@ -66,4 +66,10 @@ rt_object * load_obj_file(const char *);
 // split a string at a delimiter
 void split(const std::string, std::vector<std::string> &, const char);
 
+// calculate the uv coordinate for a barycentric point, interpolated across a triangle
+void calculate_uv(const rt_object *, const uint16_t, const rt_vector3 &, rt_vector2 &);
+
+// calculate the normal vector for a barycentric point, interpolated across a triangle
+void calculate_normal(const rt_object *, const uint16_t, const rt_vector3 &, rt_vector3 &);
+
 #endif
