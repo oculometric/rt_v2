@@ -61,6 +61,9 @@ public:
     void blit(uint8_t *, uint8_t);
     // delete render buffers
     void clean_up();
+
+    // initialise
+    rt_vbuf();
 };
 
 #endif

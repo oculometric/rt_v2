@@ -24,17 +24,19 @@ struct rt_object
 {
     // lists all the vertices used by the object
     rt_vector3 * vertices;
-    // stores indices of vertices used by each triangle, length should be 3 times the number of trianlges
+    // stores indices of vertices used by each triangle, length should be 3 times the number of triangles
     uint16_t * triangles;
-    // stores normal data for each triangle, length should be equal to number of triangles
-    rt_vector3 * normals;
     // list of pointers to materials used on this object
     rt_material ** materials;
     // indices of materials used by triangles, length should be equal to number of triangles
     uint16_t * material_indices;
     // stores UV coordinates for vertices, length should be 3 times the number of triangles
     rt_vector2 * uvs;
+    // stores normals for vertices, used for surface smoothing. length should be 3 times number of triangles
+    rt_vector3 * vertex_normals;
 
+    // stores normal data for each triangle, length should be equal to number of triangles. never directly touch this
+    rt_vector3 * normals;
     // stores the 1->2 and 1->3 vectors for each triangle, length should be 2 times number of triangles. never directly touch this
     rt_vector3 * edge_vectors;
     // stores constants for raycasting, length should be 3 times number of triangles. never directly touch this

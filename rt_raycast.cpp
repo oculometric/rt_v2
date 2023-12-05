@@ -2,6 +2,7 @@
 
 void rt_gbuf::insert_object(const rt_object * obj)
 {
+    if (obj == NULL) return;
     rt_buffer_node<rt_object *> * next_node = new rt_buffer_node<rt_object *>;
     next_node->next = NULL;
     next_node->data = (rt_object *)obj;
@@ -115,4 +116,10 @@ uint8_t rt_gbuf::check_triangle(const rt_object * obj, uint16_t tri_index, const
     res.point = tmp;
 
     return 0x0F;
+}
+
+bool check_bounds(const rt_bounds & bounds, const rt_ray & ray)
+{
+    // TODO: actually check the bounds against the ray
+    return true;
 }

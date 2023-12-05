@@ -15,7 +15,7 @@ void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
     ray_for_pixel(camera, pixel, ray);
     graphics_buffer->raycast(ray, rcr);
 
-    if (rcr.hit_tri != NULL)
+    if (rcr.hit_obj != NULL)
     {
         // if intersected, reflect and recast
         colour = /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{1,0,1};
@@ -36,7 +36,6 @@ void rt_vbuf::render()
     compute_vectors(camera);
     buffer_length = camera->view_size_pixels.u * camera->view_size_pixels.v;
 
-    graphics_buffer->cull_backfaces = false;
     graphics_buffer->near_clip = camera->near_clip;
     graphics_buffer->far_clip = camera->far_clip;
     
@@ -64,6 +63,15 @@ void rt_vbuf::render()
     }
 
     composite();
+}
+
+void rt_vbuf::composite()
+{
+    // TODO: real compositing. for now we just copy from the colour buffer
+    for (uint32_t i = 0; i < buffer_length; i++)
+    {
+        composite_buffer[i] = colour_buffer[i];
+    }
 }
 
 void rt_vbuf::blit(uint8_t * out_buffer, uint8_t buffer_selection)
@@ -98,4 +106,12 @@ void rt_vbuf::clean_up()
     if (normal_buffer != NULL) delete[] normal_buffer;
     if (depth_buffer != NULL) delete[] depth_buffer;
     if (composite_buffer != NULL) delete[] composite_buffer;
+}
+
+rt_vbuf::rt_vbuf()
+{
+    camera = new rt_camera;
+    sky = new rt_simplesky;
+    sun = new rt_sun;
+    graphics_buffer = new rt_gbuf;
 }

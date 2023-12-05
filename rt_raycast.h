@@ -28,7 +28,7 @@ class rt_gbuf
 {
 private:
     // pointer to the first object buffer node, linked list
-    rt_buffer_node<rt_object *> * object_buffer;
+    rt_buffer_node<rt_object *> * object_buffer = NULL;
     
 public:
     // near and far clip planes for rays

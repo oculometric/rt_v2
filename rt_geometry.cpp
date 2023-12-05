@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 void precompute_tri_constants(rt_object * obj)
 {
@@ -23,27 +24,32 @@ void precompute_tri_constants(rt_object * obj)
     float d12_12,d12_13,d13_13;
     for (uint32_t i = 0; i < triangles_num; i++)
     {
-        v1 = obj->vertices[obj->triangles[i]];
-        v2 = obj->vertices[obj->triangles[i+1]];
-        v3 = obj->vertices[obj->triangles[i+2]];
+        v1 = obj->vertices[obj->triangles[(i*3)]];
+        v2 = obj->vertices[obj->triangles[(i*3)+1]];
+        v3 = obj->vertices[obj->triangles[(i*3)+2]];
 
         // calculate v1->v2, v1->v3
         sub(v2, v1, v1_2);
-        obj->edge_vectors[i] = v1_2;
+        obj->edge_vectors[(i*2)] = v1_2;
         sub(v3, v1, v1_3);
-        obj->edge_vectors[i+1] = v1_3;
+        obj->edge_vectors[(i*2)+1] = v1_3;
 
         // calculate normal
         cross(v1_2, v1_3, n);
         obj->normals[i] = n;
 
+        // assign vertex normals, if they're blank (i.e. {0,0,0})
+        if (obj->vertex_normals[(i*3)] == rt_vector3{0,0,0}) obj->vertex_normals[(i*3)] = n;
+        if (obj->vertex_normals[(i*3)+1] == rt_vector3{0,0,0}) obj->vertex_normals[(i*3)+1] = n;
+        if (obj->vertex_normals[(i*3)+2] == rt_vector3{0,0,0}) obj->vertex_normals[(i*3)+2] = n;
+
         // calculate v1_2^v1_2, v1_2^v1_3, v1_3^v1_3
         mag_sq(v1_2, d12_12);
-        obj->edge_dots[i] = d12_12;
+        obj->edge_dots[(i*3)] = d12_12;
         dot(v1_2, v1_3, d12_13);
-        obj->edge_dots[i+1] = d12_13;
+        obj->edge_dots[(i*3)+1] = d12_13;
         mag_sq(v1_3, d13_13);
-        obj->edge_dots[i+2] = d13_13;
+        obj->edge_dots[(i*3)+2] = d13_13;
 
         // calculate inverse denominator
         obj->inv_denoms[i] = 1.0 / ((d12_12 * d13_13) - (d12_13 * d12_13));
@@ -72,6 +78,25 @@ void precompute_tri_constants(rt_object * obj)
 
 using namespace std;
 
+static void split(string line, vector<string> & split_line, char delim)
+{
+    string section;
+    split_line.clear();
+    for (char c : line)
+    {
+        if (c == delim)
+        {
+            split_line.push_back(section);
+            section.clear();
+        }
+        else
+        {
+            section += c;
+        }
+    }
+    if (section != "") split_line.push_back(section);
+}
+
 rt_object * load_obj_file(const char * path)
 {
     ifstream file;
@@ -80,10 +105,161 @@ rt_object * load_obj_file(const char * path)
 
     uint16_t found_vertices = 0;
     uint16_t found_triangles = 0;
+    uint16_t found_uvs = 0;
+    uint16_t found_vnorms = 0;
 
+    // prepass to count how many of each we need to allocate for
     string line;
     while(getline(file, line))
     {
-
+        if (line.length() < 2) continue;
+        if (line[0] == '#') continue;
+        if (line[0] == 'v' && line[1] == ' ')
+        {
+            found_vertices++;
+        }
+        if (line[0] == 'f' && line[1] == ' ')
+        {
+            found_triangles++;
+        }
+        if (line[0] == 'v' && line[1] == 't' && line[2] == ' ')
+        {
+            found_uvs++;
+        }
+        if (line[0] == 'v' && line[1] == 'n' && line[2] == ' ')
+        {
+            found_vnorms++;
+        }
     }
+
+    // allocate space for data
+    rt_object * obj = new rt_object;
+
+    obj->vertices = new rt_vector3[found_vertices];
+    obj->vertices_count = found_vertices;
+    obj->vertices_capacity = found_vertices;
+
+    obj->triangles = new uint16_t[found_triangles*3];
+    obj->triangles_count = found_triangles*3;
+    obj->triangles_capacity = found_triangles*3;
+
+    obj->material_indices = new uint16_t[found_triangles];
+
+    obj->uvs = new rt_vector2[found_triangles*3];
+    
+    obj->vertex_normals = new rt_vector3[found_triangles*3];
+
+    rt_vector2 * uv_temp = new rt_vector2[found_uvs];
+    rt_vector3 * vnorm_temp = new rt_vector3[found_vnorms];
+
+    // process file for realsies, but ignoring faces for now
+    file.clear();
+    file.seekg(0, std::ios::beg);
+    int v = 0;
+    int vt = 0;
+    int vn = 0;
+    int f = 0;
+    rt_vector3 tmp3;
+    rt_vector2 tmp2;
+    vector<string> split_line;
+    vector<string> split_section;
+    while(getline(file, line))
+    {
+        if (line.length() < 2) continue;
+        if (line[0] == '#') continue;
+        if (line[0] == 'v' && line[1] == ' ')
+        {   // read vertex data
+            split(line, split_line, ' ');
+            if (split_line.size() < 4) { v++; continue; }
+            tmp3.x = stof(split_line[1]);
+            tmp3.y = stof(split_line[2]);
+            tmp3.z = stof(split_line[3]);
+            obj->vertices[v] = tmp3;
+            v++;
+        }
+        else if (line[0] == 'v' && line[1] == 't' && line[2] == ' ')
+        {   // read uv data
+            split(line, split_line, ' ');
+            if (split_line.size() < 3) { vt++; continue; }
+            tmp2.u = stof(split_line[1]);
+            tmp2.v = stof(split_line[2]);
+            uv_temp[vt] = tmp2;
+            vt++;
+        }
+        else if (line[0] == 'v' && line[1] == 'n' && line[2] == ' ')
+        {   // read vertex normal data
+            split(line, split_line, ' ');
+            if (split_line.size() < 4) { vn++; continue; }
+            tmp3.x = stof(split_line[1]);
+            tmp3.y = stof(split_line[2]);
+            tmp3.z = stof(split_line[3]);
+            norm_self(tmp3);
+            vnorm_temp[vn] = tmp3;
+            vn++;
+        }
+    }
+
+    // TODO: handle materials
+
+    // process faces
+    file.clear();
+    file.seekg(0, std::ios::beg);
+    while(getline(file, line))
+    {
+        if (line.length() < 2) continue;
+        if (line[0] == '#') continue;
+        if (line[0] == 'f' && line[1] == ' ')
+        {   // read face data. we only handle triangles here
+            split(line, split_line, ' ');
+            if (split_line.size() < 4) { f++; continue; }
+            // process first vertex data
+            split(split_line[1], split_section, '/');
+            obj->triangles[f*3] = stoi(split_section[0]);
+            if (split_section.size() > 1)
+            {
+                if (split_section[1] != "") obj->uvs[f*3] = uv_temp[stoi(split_section[1])];
+                else obj->uvs[f*3] = rt_vector2{0,0};
+            }
+            if (split_section.size() > 2)
+            {
+                if (split_section[2] != "") obj->vertex_normals[f*3] = vnorm_temp[stoi(split_section[2])];
+                else obj->vertex_normals[f*3] = rt_vector3{0,0,0};
+            }
+            // process second vertex data
+            split(split_line[2], split_section, '/');
+            obj->triangles[(f*3)+1] = stoi(split_section[0]);
+            if (split_section.size() > 1)
+            {
+                if (split_section[1] != "") obj->uvs[(f*3)+1] = uv_temp[stoi(split_section[1])];
+                else obj->uvs[(f*3)+1] = rt_vector2{0,0};
+            }
+            if (split_section.size() > 2)
+            {
+                if (split_section[2] != "") obj->vertex_normals[(f*3)+1] = vnorm_temp[stoi(split_section[2])];
+                else obj->vertex_normals[(f*3)+1] = rt_vector3{0,0,0};
+            }
+            // process third vertex data
+            split(split_line[3], split_section, '/');
+            obj->triangles[(f*3)+1] = stoi(split_section[0]);
+            if (split_section.size() > 1)
+            {
+                if (split_section[1] != "") obj->uvs[(f*3)+2] = uv_temp[stoi(split_section[1])];
+                else obj->uvs[(f*3)+2] = rt_vector2{0,0};
+            }
+            if (split_section.size() > 2)
+            {
+                if (split_section[2] != "") obj->vertex_normals[(f*3)+2] = vnorm_temp[stoi(split_section[2])];
+                else obj->vertex_normals[(f*3)+2] = rt_vector3{0,0,0};
+            }
+
+            f++;
+        }
+    }
+
+    file.close();
+
+    // calculate other data about the mesh
+    precompute_tri_constants(obj);
+
+    return obj;
 }
