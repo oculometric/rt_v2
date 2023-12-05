@@ -11,6 +11,7 @@
 struct rt_ray
 {
     rt_vector3 origin, direction;
+    rt_vector3 direction_inverse;
 };
 
 // represents a bounding box with bottom corner min and upper corner max

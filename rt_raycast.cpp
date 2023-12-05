@@ -121,6 +121,27 @@ uint8_t rt_gbuf::check_triangle(const rt_object * obj, uint16_t tri_index, const
 
 bool check_bounds(const rt_bounds & bounds, const rt_ray & ray)
 {
-    // TODO: actually check the bounds against the ray
-    return true;
+    rt_vector3 v1,v2;
+    sub(ray.origin, bounds.min, v1);
+    div(v1, 2, v1);
+
+    float tmin = 0;
+    float tmax = INFINITY;
+    
+    sub(bounds.min, ray.origin, v1);
+    mul(v1, ray.direction_inverse, v1);
+
+    sub(bounds.max, ray.origin, v2);
+    mul(v2, ray.direction_inverse, v2);
+
+    tmin = max(tmin, min(v1.x, v2.x));
+    tmax = min(tmax, max(v1.x, v2.x));
+
+    tmin = max(tmin, min(v1.y, v2.y));
+    tmax = min(tmax, max(v1.y, v2.y));
+
+    tmin = max(tmin, min(v1.z, v2.z));
+    tmax = min(tmax, max(v1.z, v2.z));
+
+    return tmin < tmax;
 }

@@ -41,4 +41,5 @@ void ray_for_pixel(const rt_camera * cam, const rt_vector2 & uv, rt_ray & ray)
     mul(cam->view_vertical_vector, uv.v, tmp);
     add(ray.direction, tmp, ray.direction);
     norm_self(ray.direction);
+    div(rt_vector3{1,1,1}, ray.direction, ray.direction_inverse);
 }

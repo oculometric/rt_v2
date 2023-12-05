@@ -3,38 +3,62 @@
 #include "rt_camera.h"
 #include "rt_geometry.h"
 #include "bmp.h"
+#include "rt_rng.h"
 
+#include <chrono>
 #include <iostream>
 #include <fstream>
+
 using namespace std;
 
-void rt_vbuf::render_pixel(rt_vector2 & pixel, uint32_t buffer_pos)
+void rt_vbuf::render_pixel(const rt_vector2 & pixel, const uint32_t buffer_pos)
 {
     rt_colour colour{ 1,1,1 };
     rt_ray ray;
-    rt_raycast_result rcr;
-    rt_material * material;
+    rt_vector2 pixel_disturbed = pixel;
+    randomise_subpixel(pixel_disturbed);
+    ray_for_pixel(camera, pixel_disturbed, ray);
+    sample(ray, buffer_pos, 0, colour);
+    add(colour_buffer[buffer_pos], colour, colour_buffer[buffer_pos]);
+}
 
-    // initial raycast
-    ray_for_pixel(camera, pixel, ray);
+void rt_vbuf::sample(const rt_ray & ray, const uint32_t buffer_pos, const uint16_t depth, rt_colour & out)
+{
+    if (depth >= sample_depth) { out = background_colour; return; }
+
+    // rt_raycast_result rcr;
+
     graphics_buffer->raycast(ray, rcr);
 
-    if (rcr.hit_obj != NULL)
+    if (depth == 0)
     {
-        // if intersected, reflect and recast
-        colour = /*rcr.hit_tri->material->diffuse_colour*/ rt_colour{1,0,1};
+        depth_buffer[buffer_pos] = rcr.distance;
         index_buffer[buffer_pos] = rcr.hit_tri;
-    }
-    else
-    {
-        // otherwise, sample the sky and terminate raycast
-        sample_sky(sky, ray.direction, colour);
-        depth_buffer[buffer_pos] = camera->far_clip;
-        normal_buffer[buffer_pos] = ray.direction;
-        index_buffer[buffer_pos] = 0;
+        normal_buffer[buffer_pos] = rt_colour{ 0,0,0 };
     }
 
-    add(colour_buffer[buffer_pos], colour, colour_buffer[buffer_pos]);
+    if (rcr.hit_obj == NULL) { sample_sky(sky, ray.direction, out); return; }
+
+    // TODO: handle material qualities, like diffuseness, colour, emission
+
+    // perform one single, perfectly specular, sample deeper into the scene
+    rt_ray new_ray;
+    new_ray.origin = rcr.point;
+    rt_vector3 normal;
+    calculate_normal(rcr.hit_obj, rcr.hit_tri, rcr.baryc, normal);
+    if (depth == 0) normal_buffer[buffer_pos] = normal;
+    reflect(ray.direction, normal, new_ray.direction);
+    div(rt_vector3{1,1,1}, new_ray.direction, new_ray.direction_inverse);
+
+    sample(new_ray, buffer_pos, depth+1, out);
+    mul(out, 0.8, out);
+}
+
+void rt_vbuf::randomise_subpixel(rt_vector2 & out)
+{
+    float f1 = fmod((float)next_random()/(float)UINT32_MAX, 1.0f);
+    float f2 = fmod((float)next_random()/(float)UINT32_MAX, 1.0f);
+    out = rt_vector2{out.u + f1, out.v + f2};
 }
 
 void rt_vbuf::render()
@@ -49,12 +73,18 @@ void rt_vbuf::render()
     cout << "cleaning up" << endl;
     clean_up();
 
-    cout << "rendering scene" << endl;
+    cout << "initialising buffers" << endl;
     colour_buffer = new rt_colour[buffer_length];
     normal_buffer = new rt_colour[buffer_length];
     composite_buffer = new rt_colour[buffer_length];
     depth_buffer = new float[buffer_length];
     index_buffer = new uint16_t[buffer_length];
+
+    rotl(0xF0CC5811BA115, 2);
+
+    cout << "rendering scene" << endl;
+
+    auto start = chrono::high_resolution_clock::now();
 
     rt_vector2 pixel = rt_vector2{ 0,0 };
     for (uint32_t p = 0; p < buffer_length; p++)
@@ -71,6 +101,9 @@ void rt_vbuf::render()
             pixel.v += 1;
         }
     }
+
+    auto end = chrono::high_resolution_clock::now();
+    cout << "rendering took " << ((float)(end-start).count())/1000000.0f << endl;
 
     cout << "compositing" << endl;
     composite();
@@ -267,6 +300,10 @@ rt_vbuf::rt_vbuf(const char * path)
         {
             if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
             samples_per_pixel = stoi(split_line[1]);
+        } else if (split_line[0] == "sample_depth")
+        {
+            if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
+            sample_depth = stoi(split_line[1]);
         } else if (split_line[0] == "dithering_mode")
         {
             if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
@@ -281,7 +318,11 @@ rt_vbuf::rt_vbuf(const char * path)
         {
             if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
             graphics_buffer->cull_backfaces = stoi(split_line[1]);
-        } else if (split_line[0] == "output")
+        } else if (split_line[0] == "background_colour")
+        {
+            if (split_line.size() < 4) { cout << "malformed config at line " << i << endl; return; }
+            background_colour = rt_colour{ stof(split_line[1]), stof(split_line[2]), stof(split_line[3]) };
+        }  else if (split_line[0] == "output")
         {
             if (split_line.size() < 2) { cout << "malformed config at line " << i << endl; return; }
             int pass = stoi(split_line[1]);

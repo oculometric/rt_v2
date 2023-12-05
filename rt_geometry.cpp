@@ -262,3 +262,25 @@ void split(const std::string line, std::vector<std::string> & split_line, const 
     }
     if (section != "") split_line.push_back(section);
 }
+
+void calculate_normal(const rt_object * obj, const uint16_t tri, const rt_vector3 & baryc, rt_vector3 & normal)
+{
+    rt_vector3 norm_tmp;
+    mul(obj->vertex_normals[(tri*3)+0], baryc.x, norm_tmp);
+    normal = norm_tmp;
+    mul(obj->vertex_normals[(tri*3)+1], baryc.y, norm_tmp);
+    add(normal, norm_tmp, normal);
+    mul(obj->vertex_normals[(tri*3)+2], baryc.z, norm_tmp);
+    add(normal, norm_tmp, normal);
+}
+
+void calculate_uv(const rt_object * obj, const uint16_t tri, const rt_vector3 & baryc, rt_vector2 & uv)
+{
+    rt_vector2 uv_tmp;
+    mul(obj->uvs[(tri*3)+0], baryc.x, uv_tmp);
+    uv = uv_tmp;
+    mul(obj->uvs[(tri*3)+1], baryc.y, uv_tmp);
+    add(uv, uv_tmp, uv);
+    mul(obj->uvs[(tri*3)+2], baryc.z, uv_tmp);
+    add(uv, uv_tmp, uv);
+}

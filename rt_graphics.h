@@ -33,9 +33,17 @@ private:
     // precalculated buffer length
     uint32_t buffer_length;
 
-    // render a single pixel in the buffer
+    // render one full sample of a single pixel in the buffer
     // takes both pixel position and pixel index
-    void render_pixel(rt_vector2 &, uint32_t);
+    void render_pixel(const rt_vector2 &, const uint32_t);
+
+    // trace a ray through the scene, recursively
+    void sample(const rt_ray &, const uint32_t, const uint16_t, rt_colour &);
+
+    // slightly disturb a pixel position to randomise sampling
+    void randomise_subpixel(rt_vector2 &);
+
+    rt_raycast_result rcr;
 
 public:
     // necessary scene objects
@@ -56,6 +64,10 @@ public:
     uint8_t dithering_mode = 0;
     // render transform function to be used for compositing
     uint8_t view_transform = 0;
+    // maximum depth of rays to trace
+    uint16_t sample_depth = 2;
+    // universal global illumination background colour (should be set to zero for photorealism)
+    rt_colour background_colour{ 0,0,0 };
 
     // render the scene into the buffers
     void render();
