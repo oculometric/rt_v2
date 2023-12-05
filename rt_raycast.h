@@ -20,6 +20,7 @@ struct rt_raycast_result
                         // if > 1, ray collides with the back of a face
                         // if < 1, ray collides with front of a face
     rt_vector3 point;   // point where the triangle was hit
+    rt_vector3 baryc;   // barycentric coordinates within the triangle
 };
 
 // class which holds and manages a graphics buffer, including handling

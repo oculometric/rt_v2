@@ -114,6 +114,7 @@ uint8_t rt_gbuf::check_triangle(const rt_object * obj, uint16_t tri_index, const
     res.hit_obj = (rt_object *)obj;
     res.r_dot_n = dt;
     res.point = tmp;
+    res.baryc = rt_vector3{ u,v,w };
 
     return 0x0F;
 }
