@@ -39,19 +39,34 @@ void rt_vbuf::sample(const rt_ray & ray, const uint32_t buffer_pos, const uint16
 
     if (rcr.hit_obj == NULL) { sample_sky(sky, ray.direction, out); return; }
 
-    // TODO: handle material qualities, like diffuseness, colour, emission
-
-    // perform one single, perfectly specular, sample deeper into the scene
+    // perform a sample deeper into the scene
     rt_ray new_ray;
     new_ray.origin = rcr.point;
+
     rt_vector3 normal;
     calculate_normal(rcr.hit_obj, rcr.hit_tri, rcr.baryc, normal);
     if (depth == 0) normal_buffer[buffer_pos] = normal;
     reflect(ray.direction, normal, new_ray.direction);
-    div(rt_vector3{1,1,1}, new_ray.direction, new_ray.direction_inverse);
 
+    rt_material * material = rcr.hit_obj->materials[rcr.hit_obj->material_indices[rcr.hit_tri]];
+    float d = 1;
+
+    if (material->roughness > 0)
+    {
+        rt_vector3 perturber = rt_vector3{next_randomf(), next_randomf(), next_randomf()};
+        mul(perturber, 5, perturber);
+        sub(perturber, rt_vector3{1,1,1}, perturber);
+        mul(perturber, material->roughness, perturber);
+        add(normal, perturber, new_ray.direction);
+        norm_self(new_ray.direction);
+        dot(new_ray.direction, normal, d);
+    }
+
+    div(rt_vector3{1,1,1}, new_ray.direction, new_ray.direction_inverse);
     sample(new_ray, buffer_pos, depth+1, out);
-    mul(out, 0.8, out);
+
+    mul(out, material->colour, out);
+    add(out, material->emission, out);
 }
 
 void rt_vbuf::randomise_subpixel(rt_vector2 & out)
@@ -138,11 +153,17 @@ void rt_vbuf::blit(uint8_t * out_buffer, uint8_t buffer_selection)
             out_buffer[(i*3) + 2] = 0;
         }
     }
+    else if (buffer_selection == VBUF_COMPOSITE)
+    {
+        for (int i = 0; i < buffer_length; i++)
+        {
+            gamma_correct(composite_buffer[i], camera->exposure, camera->gamma, out_buffer+(i*3));
+        }
+    }
     else
     {
         rt_colour * in_buffer;
-        if (buffer_selection == VBUF_COMPOSITE) in_buffer = composite_buffer;
-        else if (buffer_selection == VBUF_COLOUR) in_buffer = colour_buffer;
+        if (buffer_selection == VBUF_COLOUR) in_buffer = colour_buffer;
         else if (buffer_selection == VBUF_NORMAL) in_buffer = normal_buffer;
         else return;
 
@@ -217,6 +238,11 @@ rt_vbuf::rt_vbuf(const char * path)
     ifstream file;
     file.open(path);
     if (!file.is_open()) { cout << "failed to open config file" << endl; return; }
+
+    rt_material * diffuse_mat = new rt_material;
+    diffuse_mat->colour = rt_colour{0.8, 0.8, 0.8};
+    diffuse_mat->emission = rt_colour{0,0,0};
+    diffuse_mat->roughness = 1;
 
     cout << "attempting to read config file" << endl;
 
@@ -334,7 +360,7 @@ rt_vbuf::rt_vbuf(const char * path)
             if (filename_to_load.length() == 0) { cout << "malformed config at line " << i << endl; return; }
             cout << "reading object file " << filename_to_load << endl;
             rt_object * loaded_obj = load_obj_file(filename_to_load.c_str());
-            if (loaded_obj != NULL) graphics_buffer->insert_object(loaded_obj);
+            if (loaded_obj != NULL) { loaded_obj->materials[0] = diffuse_mat; graphics_buffer->insert_object(loaded_obj); }
         }
     }
 }

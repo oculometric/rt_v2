@@ -27,4 +27,9 @@ static uint64_t next_random() {
 	return result;
 }
 
+static float next_randomf()
+{
+	return fmod((float)next_random()/(float)UINT32_MAX, 1.0f);
+}
+
 #endif

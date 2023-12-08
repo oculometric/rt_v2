@@ -45,6 +45,8 @@ private:
 
     rt_raycast_result rcr;
 
+    const float ray_probability = 1/(2*M_PI);
+
 public:
     // necessary scene objects
     rt_camera * camera = NULL;

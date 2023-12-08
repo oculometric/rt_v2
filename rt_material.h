@@ -7,7 +7,8 @@
 struct rt_material
 {
     uint8_t flags;
-    rt_colour diffuse_colour;
+    rt_colour colour;
+    rt_colour emission;
     float roughness;
 };
 

@@ -178,6 +178,7 @@ rt_object * load_obj_file(const char * path)
     }
 
     // TODO: handle materials
+    obj->materials = new rt_material*[16];
 
     // process faces
     file.clear();
@@ -188,6 +189,7 @@ rt_object * load_obj_file(const char * path)
         if (line[0] == '#') continue;
         if (line[0] == 'f' && line[1] == ' ')
         {   // read face data. we only handle triangles here
+            obj->material_indices[f] = 0; // FIXME: apply real materials
             split(line, split_line, ' ');
             if (split_line.size() < 4) { f++; continue; }
             // process first vertex data
